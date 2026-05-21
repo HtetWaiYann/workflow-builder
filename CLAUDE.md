@@ -48,3 +48,146 @@ The root `tsconfig.json` is a minimal base (target, strict, esModuleInterop). Ba
 - `verbatimModuleSyntax: true` in the frontend — use `import type` for type-only imports.
 - `noUnusedLocals` and `noUnusedParameters` are enforced in the frontend.
 - The backend uses CommonJS; avoid ESM-only packages there.
+- for git commit, always use prefix like "fix: ", "chore: ", "feature: ".
+- never push to master
+
+## General Rules
+
+- Never install a library without asking me first
+- Never change the monorepo structure without asking me first
+- Never rename packages or change package names
+- Always use TypeScript — no plain .js files anywhere
+- Never use `any` type — use `unknown` and narrow it, or define a proper type
+- Always check if a type already exists in @workflow-builder/shared before creating a new one
+- Never duplicate types across packages — shared types always live in packages/shared/src
+- Always use named exports — no default exports except in React component files
+- Never use barrel re-exports that cause circular dependencies
+
+---
+
+## Frontend Rules66
+
+### React
+- React 19 only — do not downgrade or suggest downgrading
+- React Compiler is enabled — never write useMemo, useCallback, or React.memo manually
+- Never use class components
+- Never use legacy React patterns (componentDidMount, getDerivedStateFromProps, etc.)
+- Keep components small and focused — one responsibility per component
+- Co-locate component files: MyComponent.tsx + MyComponent.types.ts in the same folder
+
+### State Management
+- Zustand for all global state
+- Never use React Context for state that changes frequently
+- Keep Zustand stores normalized — no nested objects that get partially updated
+- Never store derived state in Zustand — compute it with selectors instead
+- Store files live in src/stores/ — one file per domain (workflowStore, executionStore, uiStore)
+
+### Styling
+- Tailwind CSS utility classes only — no inline styles, no CSS modules, no styled-components
+- shadcn/ui for all UI components (buttons, inputs, modals, dropdowns, tooltips, tabs)
+- Never install MUI, Ant Design, Chakra, or any other component library
+- Dark mode must work — always use Tailwind dark: variants when adding custom colors
+- Never hardcode colors — use Tailwind color tokens only
+
+### Canvas
+- React Flow for the canvas — do not replace it with a custom canvas solution
+- All custom node types live in src/components/nodes/
+- All custom edge types live in src/components/edges/
+- Never mutate React Flow's internal state directly
+
+### File Structure (frontend)
+src/
+├── components/
+│   ├── nodes/         (custom React Flow node components)
+│   ├── edges/         (custom React Flow edge components)
+│   ├── panels/        (config panel, run panel, history panel)
+│   ├── palette/       (node palette sidebar)
+│   └── ui/            (shadcn/ui components live here)
+├── stores/            (Zustand stores)
+├── hooks/             (custom React hooks)
+├── lib/               (utility functions, API client)
+├── pages/             (top-level route pages)
+└── types/             (frontend-only types, not shared ones)
+
+---
+
+## Backend Rules
+
+### General
+- Express only — do not suggest replacing it with Fastify, Hono, or anything else
+- All routes must go through a router file — no routes defined directly in index.ts
+- Always validate request body with Zod before using it
+- Never trust req.body without validation
+- All async route handlers must be wrapped in try/catch — no unhandled promise rejections
+- Always return consistent JSON error responses: { error: string, code: string }
+
+### Database
+- PostgreSQL only — no other databases
+- Use raw SQL with the pg library — no ORM (no Prisma, no TypeORM, no Sequelize)
+- All queries live in src/db/queries/ — one file per table
+- All migrations live in src/db/migrations/ — numbered sequentially (001_create_users.sql)
+- Never write queries inline inside route handlers
+- Always use parameterized queries — never string-interpolate user input into SQL
+
+### Execution Engine
+- Lives entirely in src/engine/
+- The engine must not import anything from Express — it is framework-agnostic
+- Each node executor is a separate class in src/engine/nodes/
+- Every node executor must implement the NodeExecutor interface from @workflow-builder/shared
+- Never run user-supplied code outside of Node's vm module sandbox
+
+### Queue
+- BullMQ only — no other queue libraries
+- Redis connection config comes from environment variables only
+- All queue definitions live in src/queues/
+- Worker process is separate from the API server — src/worker.ts is the entry point
+
+### Security
+- Never log decrypted credential values
+- Never send credential values to the frontend — list names and types only
+- Always use AES-256-GCM for credential encryption
+- Encryption key must come from environment variable — never hardcode it
+- JWT secret must come from environment variable — never hardcode it
+- Always use httpOnly cookies for JWT — never localStorage
+
+### File Structure (backend)
+src/
+├── routes/            (Express routers — one file per resource)
+├── middleware/        (auth, validation, error handler)
+├── db/
+│   ├── queries/       (one file per table)
+│   └── migrations/    (numbered SQL files)
+├── engine/
+│   ├── nodes/         (one executor class per node type)
+│   ├── dag.ts         (DAG builder + topological sort)
+│   ├── runner.ts      (main execution loop)
+│   └── context.ts     (ExecutionContext type + factory)
+├── queues/            (BullMQ queue + worker definitions)
+├── services/          (credential encryption, email, etc.)
+└── worker.ts          (worker process entry point)
+
+---
+
+## Shared Package Rules
+
+- All TypeScript interfaces for nodes, workflows, runs, and execution live here
+- All Zod schemas that are used by both frontend and backend live here
+- No framework-specific code — no Express, no React, no BullMQ imports
+- No side effects in index.ts — exports only
+
+## What To Always Do
+
+- Run the TypeScript compiler (tsc --noEmit) after making changes to shared types
+- Keep the shared package in sync — if you change an interface, update all usages
+- Write the Zod schema first, then derive the TypeScript type from it (z.infer<typeof Schema>)
+- Always handle the error case before the success case in async functions
+- When adding a new node type, add it to: shared (interface + schema), backend (executor), frontend (component + config schema)
+
+## What To Never Do
+
+- Never use console.log in production code — use a proper logger (pino)
+- Never commit .env files
+- Never use * imports
+- Never skip error handling with empty catch blocks
+- Never use setTimeout as a substitute for proper queue-based delays
+- Never store state in module-level variables in the backend (stateless handlers only)
