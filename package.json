@@ -9,9 +9,15 @@
     "build:shared": "npm run build --workspace=packages/shared",
     "dev:backend": "npm run dev --workspace=packages/backend",
     "dev:frontend": "npm run dev --workspace=packages/frontend",
-    "build": "npm run build --workspaces --if-present"
+    "build": "npm run build --workspaces --if-present",
+    "format": "prettier --write \"packages/**/*.{ts,tsx,js,jsx,json,css}\"",
+    "format:check": "prettier --check \"packages/**/*.{ts,tsx,js,jsx,json,css}\"",
+    "lint": "npm run lint --workspaces --if-present"
   },
   "devDependencies": {
+    "prettier": "^3.8.3",
+    "prettier-plugin-tailwindcss": "^0.8.0",
+    "shadcn": "^4.7.0",
     "typescript": "^5.8.3"
   }
 }
