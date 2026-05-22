@@ -6,6 +6,11 @@ export interface AuthRequest extends Request {
   userEmail?: string
 }
 
+/**
+ * Express middleware that reads the `token` httpOnly cookie, verifies it,
+ * and attaches `userId` and `userEmail` to the request.
+ * Responds with 401 if the cookie is absent or the token is invalid.
+ */
 export function requireAuth(
   req: AuthRequest,
   res: Response,

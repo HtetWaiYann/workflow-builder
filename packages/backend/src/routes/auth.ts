@@ -19,33 +19,29 @@ const COOKIE_OPTIONS = {
   maxAge: 7 * 24 * 60 * 60 * 1000,
 }
 
-function formatUser(user: {
+const formatUser = (user: {
   id: string
   email: string
   name: string | null
   createdAt: Date
-}) {
-  return {
-    id: user.id,
-    email: user.email,
-    name: user.name,
-    createdAt: user.createdAt.toISOString(),
-  }
-}
+}) => ({
+  id: user.id,
+  email: user.email,
+  name: user.name,
+  createdAt: user.createdAt.toISOString(),
+})
 
-function formatWorkspace(ws: {
+const formatWorkspace = (ws: {
   id: string
   name: string
   userId: string
   createdAt: Date
-}) {
-  return {
-    id: ws.id,
-    name: ws.name,
-    userId: ws.userId,
-    createdAt: ws.createdAt.toISOString(),
-  }
-}
+}) => ({
+  id: ws.id,
+  name: ws.name,
+  userId: ws.userId,
+  createdAt: ws.createdAt.toISOString(),
+})
 
 router.post('/register', async (req, res: Response) => {
   try {
