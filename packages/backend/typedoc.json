@@ -1,0 +1,10 @@
+{
+  "entryPoints": ["src"],
+  "entryPointStrategy": "expand",
+  "tsconfig": "tsconfig.json",
+  "exclude": ["src/generated/**", "**/*.test.ts"],
+  "excludeExternals": true,
+  "validation": {
+    "notExported": false
+  }
+}

@@ -9,6 +9,10 @@ export function DashboardPage() {
   const clearAuth = useAuthStore((s) => s.clearAuth)
   const navigate = useNavigate()
 
+  /**
+   * Calls the logout endpoint then clears local auth state and redirects.
+   * Always navigates in the `finally` block so a failed API call never leaves the user stuck on the dashboard.
+   */
   async function handleLogout() {
     try {
       await api.auth.logout()

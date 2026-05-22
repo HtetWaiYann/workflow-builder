@@ -63,6 +63,14 @@ The root `tsconfig.json` is a minimal base (target, strict, esModuleInterop). Ba
 - Always use named exports — no default exports except in React component files
 - Never use barrel re-exports that cause circular dependencies
 
+### Function Style & JSDoc
+
+- Use a `function` declaration **with a JSDoc comment** for any function whose behavior is not immediately obvious from its name and signature alone (complex logic, non-trivial side effects, error-throwing behavior, env-var dependencies)
+- Use an **arrow function with no JSDoc** for functions simple enough that a reader can grasp them at a glance (one-liner transforms, formatters, simple selectors)
+- JSDoc must include `@param`, `@returns`, and `@throws` tags where the meaning is not already obvious from TypeScript types; omit tags that add no information beyond the type
+- JSDoc comments apply to all packages including `.tsx` files — the TypeScript language server reads them for editor hover docs regardless of the doc generator
+- Generate HTML docs with `npm run docs` (TypeDoc reads TypeScript source directly — no build step needed). Root config at `typedoc.json`; each package has its own `typedoc.json` specifying entry points and excludes
+
 ---
 
 ## Frontend Rules

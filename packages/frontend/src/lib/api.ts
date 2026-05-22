@@ -6,6 +6,14 @@ import type {
 
 const BASE_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3000'
 
+/**
+ * Sends a JSON request to the API with credentials (cookies) included.
+ * On non-OK responses, parses the error body and throws with `code` and `status` attached.
+ *
+ * @param path - URL path relative to BASE_URL (e.g. `/auth/login`)
+ * @param options - Optional fetch init; `Content-Type: application/json` is set by default
+ * @throws {Error & { code: string; status: number }} when the server returns a non-OK status
+ */
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const res = await fetch(`${BASE_URL}${path}`, {
     ...options,
