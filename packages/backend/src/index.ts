@@ -8,8 +8,9 @@ import authRouter from './routes/auth'
 
 const app = express()
 const PORT = process.env.PORT || 3001
+const CORS_ORIGIN = process.env.CORS_ORIGIN;
 
-app.use(cors({ origin: 'http://localhost:5173', credentials: true }))
+app.use(cors({ origin: CORS_ORIGIN, credentials: true }))
 app.use(express.json())
 app.use(cookieParser())
 
@@ -19,6 +20,7 @@ app.get('/health', (_req, res) => {
 
 app.use('/auth', authRouter)
 
+/** Validates required env vars, opens the DB connection, then starts the HTTP server. */
 async function start() {
   const requiredEnvVars = ['DATABASE_URL', 'JWT_SECRET']
   const missing = requiredEnvVars.filter((key) => !process.env[key])
