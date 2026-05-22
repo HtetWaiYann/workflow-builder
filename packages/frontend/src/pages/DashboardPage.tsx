@@ -10,9 +10,14 @@ export function DashboardPage() {
   const navigate = useNavigate()
 
   async function handleLogout() {
-    await api.auth.logout().catch(() => null)
-    clearAuth()
-    navigate('/login')
+    try {
+      await api.auth.logout()
+    } catch (err) {
+      console.error('Logout request failed', err)
+    } finally {
+      clearAuth()
+      navigate('/login')
+    }
   }
 
   return (

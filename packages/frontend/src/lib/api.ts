@@ -1,6 +1,10 @@
-import type { AuthResponse } from '@workflow-builder/shared'
+import type {
+  AuthResponse,
+  RegisterRequest,
+  LoginRequest,
+} from '@workflow-builder/shared'
 
-const BASE_URL = 'http://localhost:3000'
+const BASE_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3000'
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const res = await fetch(`${BASE_URL}${path}`, {
@@ -29,13 +33,13 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
 
 export const api = {
   auth: {
-    register: (data: { email: string; password: string; name?: string }) =>
+    register: (data: RegisterRequest) =>
       request<AuthResponse>('/auth/register', {
         method: 'POST',
         body: JSON.stringify(data),
       }),
 
-    login: (data: { email: string; password: string }) =>
+    login: (data: LoginRequest) =>
       request<AuthResponse>('/auth/login', {
         method: 'POST',
         body: JSON.stringify(data),
