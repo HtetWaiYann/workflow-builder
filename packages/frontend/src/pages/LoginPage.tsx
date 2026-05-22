@@ -49,7 +49,11 @@ export function LoginPage() {
         </CardHeader>
         <form onSubmit={handleSubmit} className="flex flex-col gap-6">
           <CardContent className="flex flex-col gap-4">
-            {error && <p className="text-destructive text-sm">{error}</p>}
+            {error && (
+              <p role="alert" aria-live="polite" className="text-destructive text-sm">
+                {error}
+              </p>
+            )}
             <div className="flex flex-col gap-1.5">
               <Label htmlFor="email">Email</Label>
               <Input
