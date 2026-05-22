@@ -1,0 +1,6 @@
+{
+  "name": "Workflow Builder",
+  "entryPointStrategy": "packages",
+  "entryPoints": ["packages/shared", "packages/backend", "packages/frontend"],
+  "out": "docs"
+}
