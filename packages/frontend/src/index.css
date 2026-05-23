@@ -4,7 +4,7 @@
   :root {
     --background: oklch(1 0 0);
     --foreground: oklch(0.145 0 0);
-    --card: oklch(1 0 0);
+    --card: oklch(0.98 0 0);
     --card-foreground: oklch(0.145 0 0);
     --popover: oklch(1 0 0);
     --popover-foreground: oklch(0.145 0 0);
@@ -19,29 +19,54 @@
     --destructive: oklch(0.577 0.245 27.325);
     --border: oklch(0.922 0 0);
     --input: oklch(0.922 0 0);
-    --ring: oklch(0.708 0 0);
-    --radius: 0.625rem;
+    --ring: oklch(0.62 0.18 264);
+    --radius: 0.5rem;
+
+    /* Node type colors — light mode */
+    --node-trigger: oklch(0.62 0.18 25);
+    --node-action: oklch(0.58 0.19 258);
+    --node-logic: oklch(0.57 0.2 290);
+    --node-transform: oklch(0.64 0.12 185);
+    --node-notify: oklch(0.78 0.16 88);
+    --node-success: oklch(0.63 0.14 152);
+    --node-error: oklch(0.62 0.18 25);
   }
 
   .dark {
-    --background: oklch(0.145 0 0);
-    --foreground: oklch(0.985 0 0);
-    --card: oklch(0.205 0 0);
-    --card-foreground: oklch(0.985 0 0);
-    --popover: oklch(0.205 0 0);
-    --popover-foreground: oklch(0.985 0 0);
-    --primary: oklch(0.922 0 0);
-    --primary-foreground: oklch(0.205 0 0);
-    --secondary: oklch(0.269 0 0);
-    --secondary-foreground: oklch(0.985 0 0);
-    --muted: oklch(0.269 0 0);
-    --muted-foreground: oklch(0.708 0 0);
-    --accent: oklch(0.269 0 0);
-    --accent-foreground: oklch(0.985 0 0);
-    --destructive: oklch(0.704 0.191 22.216);
-    --border: oklch(1 0 0 / 10%);
-    --input: oklch(1 0 0 / 15%);
-    --ring: oklch(0.556 0 0);
+    /* Base surfaces — #0f0f11 background with slight blue-purple tint */
+    --background: oklch(0.09 0.004 264);
+    --foreground: oklch(0.93 0.005 264);
+    --card: oklch(0.13 0.005 264);
+    --card-foreground: oklch(0.93 0.005 264);
+    --popover: oklch(0.17 0.006 264);
+    --popover-foreground: oklch(0.93 0.005 264);
+
+    /* Interactive */
+    --primary: oklch(0.88 0.005 264);
+    --primary-foreground: oklch(0.09 0.004 264);
+    --secondary: oklch(0.22 0.007 264);
+    --secondary-foreground: oklch(0.93 0.005 264);
+
+    /* Subdued */
+    --muted: oklch(0.17 0.006 264);
+    --muted-foreground: oklch(0.64 0.012 264);
+    --accent: oklch(0.22 0.007 264);
+    --accent-foreground: oklch(0.93 0.005 264);
+
+    /* Semantic */
+    --destructive: oklch(0.65 0.18 25);
+    --border: oklch(1 0 0 / 14%);
+    --input: oklch(0.36 0.008 264);
+    --ring: oklch(0.62 0.18 264);
+
+    /* Node type colors — dark mode */
+    --node-trigger: oklch(0.65 0.17 25);
+    --node-action: oklch(0.62 0.18 258);
+    --node-logic: oklch(0.6 0.2 290);
+    --node-transform: oklch(0.68 0.12 185);
+    --node-notify: oklch(0.83 0.15 88);
+    --node-success: oklch(0.67 0.14 152);
+    --node-error: oklch(0.65 0.17 18);
   }
 }
 
@@ -68,6 +93,15 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+
+  /* Node type colors — available as bg-node-trigger, text-node-action, etc. */
+  --color-node-trigger: var(--node-trigger);
+  --color-node-action: var(--node-action);
+  --color-node-logic: var(--node-logic);
+  --color-node-transform: var(--node-transform);
+  --color-node-notify: var(--node-notify);
+  --color-node-success: var(--node-success);
+  --color-node-error: var(--node-error);
 }
 
 @layer base {
