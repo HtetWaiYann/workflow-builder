@@ -1,5 +1,7 @@
 node_modules/
 dist/
+docs/
 .env
 *.local
 .DS_Store
+CLAUDE.local.md

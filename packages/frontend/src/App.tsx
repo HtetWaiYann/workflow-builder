@@ -1,18 +1,35 @@
-import { useState } from 'react'
-import { GREETING } from '@workflow-builder/shared'
-import './App.css'
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
+import { useInitAuth } from '@/hooks/useInitAuth'
+import { ProtectedRoute } from '@/components/ProtectedRoute'
+import { LoginPage } from '@/pages/LoginPage'
+import { RegisterPage } from '@/pages/RegisterPage'
+import { DashboardPage } from '@/pages/DashboardPage'
 
-function App() {
-  const [count, setCount] = useState(0)
+function AppRoutes() {
+  useInitAuth()
 
   return (
-    <div>
-      <h1>Workflow Builder</h1>
-      <p className="shared-greeting">{GREETING}</p>
-      <button type="button" onClick={() => setCount((c) => c + 1)}>
-        Count: {count}
-      </button>
-    </div>
+    <Routes>
+      <Route path="/login" element={<LoginPage />} />
+      <Route path="/register" element={<RegisterPage />} />
+      <Route
+        path="/"
+        element={
+          <ProtectedRoute>
+            <DashboardPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
+  )
+}
+
+function App() {
+  return (
+    <BrowserRouter>
+      <AppRoutes />
+    </BrowserRouter>
   )
 }
 

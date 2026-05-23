@@ -2,6 +2,7 @@
   "extends": "../../tsconfig.json",
   "compilerOptions": {
     "module": "CommonJS",
+    "ignoreDeprecations": "5.0",
     "moduleResolution": "Node",
     "outDir": "dist",
     "rootDir": "src"

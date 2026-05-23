@@ -63,11 +63,24 @@ The root `tsconfig.json` is a minimal base (target, strict, esModuleInterop). Ba
 - Always use named exports — no default exports except in React component files
 - Never use barrel re-exports that cause circular dependencies
 
+### Function Style & JSDoc
+
+- Use a `function` declaration **with a JSDoc comment** for any function whose behavior is not immediately obvious from its name and signature alone (complex logic, non-trivial side effects, error-throwing behavior, env-var dependencies)
+- Use an **arrow function with no JSDoc** for functions simple enough that a reader can grasp them at a glance (one-liner transforms, formatters, simple selectors)
+- JSDoc must include `@param`, `@returns`, and `@throws` tags where the meaning is not already obvious from TypeScript types; omit tags that add no information beyond the type
+- JSDoc comments apply to all packages including `.tsx` files — the TypeScript language server reads them for editor hover docs regardless of the doc generator
+- Generate HTML docs with `npm run docs` (TypeDoc reads TypeScript source directly — no build step needed). Root config at `typedoc.json`; each package has its own `typedoc.json` specifying entry points and excludes
+
 ---
 
-## Frontend Rules66
+## Frontend Rules
+
+### Imports
+
+- Always use the `@/` path alias for intra-package imports — never use relative paths (`./`, `../`)
 
 ### React
+
 - React 19 only — do not downgrade or suggest downgrading
 - React Compiler is enabled — never write useMemo, useCallback, or React.memo manually
 - Never use class components
@@ -76,6 +89,7 @@ The root `tsconfig.json` is a minimal base (target, strict, esModuleInterop). Ba
 - Co-locate component files: MyComponent.tsx + MyComponent.types.ts in the same folder
 
 ### State Management
+
 - Zustand for all global state
 - Never use React Context for state that changes frequently
 - Keep Zustand stores normalized — no nested objects that get partially updated
@@ -83,6 +97,7 @@ The root `tsconfig.json` is a minimal base (target, strict, esModuleInterop). Ba
 - Store files live in src/stores/ — one file per domain (workflowStore, executionStore, uiStore)
 
 ### Styling
+
 - Tailwind CSS utility classes only — no inline styles, no CSS modules, no styled-components
 - shadcn/ui for all UI components (buttons, inputs, modals, dropdowns, tooltips, tabs)
 - Never install MUI, Ant Design, Chakra, or any other component library
@@ -90,30 +105,33 @@ The root `tsconfig.json` is a minimal base (target, strict, esModuleInterop). Ba
 - Never hardcode colors — use Tailwind color tokens only
 
 ### Canvas
+
 - React Flow for the canvas — do not replace it with a custom canvas solution
 - All custom node types live in src/components/nodes/
 - All custom edge types live in src/components/edges/
 - Never mutate React Flow's internal state directly
 
 ### File Structure (frontend)
+
 src/
 ├── components/
-│   ├── nodes/         (custom React Flow node components)
-│   ├── edges/         (custom React Flow edge components)
-│   ├── panels/        (config panel, run panel, history panel)
-│   ├── palette/       (node palette sidebar)
-│   └── ui/            (shadcn/ui components live here)
-├── stores/            (Zustand stores)
-├── hooks/             (custom React hooks)
-├── lib/               (utility functions, API client)
-├── pages/             (top-level route pages)
-└── types/             (frontend-only types, not shared ones)
+│ ├── nodes/ (custom React Flow node components)
+│ ├── edges/ (custom React Flow edge components)
+│ ├── panels/ (config panel, run panel, history panel)
+│ ├── palette/ (node palette sidebar)
+│ └── ui/ (shadcn/ui components live here)
+├── stores/ (Zustand stores)
+├── hooks/ (custom React hooks)
+├── lib/ (utility functions, API client)
+├── pages/ (top-level route pages)
+└── types/ (frontend-only types, not shared ones)
 
 ---
 
 ## Backend Rules
 
 ### General
+
 - Express only — do not suggest replacing it with Fastify, Hono, or anything else
 - All routes must go through a router file — no routes defined directly in index.ts
 - Always validate request body with Zod before using it
@@ -122,14 +140,16 @@ src/
 - Always return consistent JSON error responses: { error: string, code: string }
 
 ### Database
+
 - PostgreSQL only — no other databases
-- Use raw SQL with the pg library — no ORM (no Prisma, no TypeORM, no Sequelize)
-- All queries live in src/db/queries/ — one file per table
-- All migrations live in src/db/migrations/ — numbered sequentially (001_create_users.sql)
-- Never write queries inline inside route handlers
-- Always use parameterized queries — never string-interpolate user input into SQL
+- Use Prisma ORM — no raw pg, no TypeORM, no Sequelize
+- Prisma schema lives in `prisma/schema.prisma` (inside the backend package)
+- Run `npm run db:generate` after changing the schema, `npm run db:migrate` to apply migrations
+- Never write raw SQL inline — use Prisma client methods only
+- Prisma client singleton lives in `src/db/client.ts` — import from there, never instantiate PrismaClient elsewhere
 
 ### Execution Engine
+
 - Lives entirely in src/engine/
 - The engine must not import anything from Express — it is framework-agnostic
 - Each node executor is a separate class in src/engine/nodes/
@@ -137,12 +157,14 @@ src/
 - Never run user-supplied code outside of Node's vm module sandbox
 
 ### Queue
+
 - BullMQ only — no other queue libraries
 - Redis connection config comes from environment variables only
 - All queue definitions live in src/queues/
 - Worker process is separate from the API server — src/worker.ts is the entry point
 
 ### Security
+
 - Never log decrypted credential values
 - Never send credential values to the frontend — list names and types only
 - Always use AES-256-GCM for credential encryption
@@ -151,20 +173,22 @@ src/
 - Always use httpOnly cookies for JWT — never localStorage
 
 ### File Structure (backend)
+
+prisma/
+└── schema.prisma (Prisma schema — all models defined here)
 src/
-├── routes/            (Express routers — one file per resource)
-├── middleware/        (auth, validation, error handler)
+├── routes/ (Express routers — one file per resource)
+├── middleware/ (auth, validation, error handler)
 ├── db/
-│   ├── queries/       (one file per table)
-│   └── migrations/    (numbered SQL files)
+│ └── client.ts (Prisma client singleton)
 ├── engine/
-│   ├── nodes/         (one executor class per node type)
-│   ├── dag.ts         (DAG builder + topological sort)
-│   ├── runner.ts      (main execution loop)
-│   └── context.ts     (ExecutionContext type + factory)
-├── queues/            (BullMQ queue + worker definitions)
-├── services/          (credential encryption, email, etc.)
-└── worker.ts          (worker process entry point)
+│ ├── nodes/ (one executor class per node type)
+│ ├── dag.ts (DAG builder + topological sort)
+│ ├── runner.ts (main execution loop)
+│ └── context.ts (ExecutionContext type + factory)
+├── queues/ (BullMQ queue + worker definitions)
+├── services/ (credential encryption, email, etc.)
+└── worker.ts (worker process entry point)
 
 ---
 
@@ -187,7 +211,7 @@ src/
 
 - Never use console.log in production code — use a proper logger (pino)
 - Never commit .env files
-- Never use * imports
+- Never use \* imports
 - Never skip error handling with empty catch blocks
 - Never use setTimeout as a substitute for proper queue-based delays
 - Never store state in module-level variables in the backend (stateless handlers only)
