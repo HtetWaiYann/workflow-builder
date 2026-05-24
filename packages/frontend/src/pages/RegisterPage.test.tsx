@@ -114,7 +114,7 @@ describe('RegisterPage', () => {
     await waitFor(() => {
       expect(useAuthStore.getState().user).toEqual(fakeResponse.user)
       expect(useAuthStore.getState().workspace).toEqual(fakeResponse.workspace)
-      expect(mockNavigate).toHaveBeenCalledWith('/')
+      expect(mockNavigate).toHaveBeenCalledWith('/dashboard')
     })
   })
 

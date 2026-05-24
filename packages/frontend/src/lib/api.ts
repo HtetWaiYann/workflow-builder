@@ -40,6 +40,8 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
     throw err
   }
 
+  // 204 No Content — body is empty and res.json() would throw
+  if (res.status === 204) return undefined as T
   return res.json() as Promise<T>
 }
 
