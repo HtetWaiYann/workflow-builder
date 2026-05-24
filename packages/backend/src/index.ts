@@ -26,7 +26,7 @@ app.use('/executions', executionDetailRouter)
 
 /** Validates required env vars, opens the DB connection, then starts the HTTP server. */
 async function start() {
-  const requiredEnvVars = ['DATABASE_URL', 'JWT_SECRET']
+  const requiredEnvVars = ['DATABASE_URL', 'JWT_SECRET', 'CORS_ORIGIN']
   const missing = requiredEnvVars.filter((key) => !process.env[key])
   if (missing.length > 0) {
     logger.fatal({ missing }, 'Missing required environment variables')
