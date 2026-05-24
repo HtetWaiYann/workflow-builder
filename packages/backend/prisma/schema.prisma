@@ -88,5 +88,6 @@ model ExecutionNodeRun {
   startedAt   DateTime?
   finishedAt  DateTime?
 
+  @@unique([executionId, nodeId])
   @@index([executionId])
 }
