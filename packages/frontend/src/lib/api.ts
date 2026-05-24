@@ -2,9 +2,13 @@ import type {
   AuthResponse,
   RegisterRequest,
   LoginRequest,
+  WorkflowSummary,
+  Workflow,
+  CreateWorkflowRequest,
+  RenameWorkflowRequest,
 } from '@workflow-builder/shared'
 
-const BASE_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3000'
+const BASE_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3001'
 
 /**
  * Sends a JSON request to the API with credentials (cookies) included.
@@ -57,5 +61,41 @@ export const api = {
       request<{ success: boolean }>('/auth/logout', { method: 'POST' }),
 
     me: () => request<AuthResponse>('/auth/me'),
+  },
+
+  workflows: {
+    list: () => request<{ workflows: WorkflowSummary[] }>('/workflows'),
+
+    get: (id: string) => request<{ workflow: Workflow }>(`/workflows/${id}`),
+
+    create: (data: CreateWorkflowRequest) =>
+      request<{ workflow: Workflow }>('/workflows', {
+        method: 'POST',
+        body: JSON.stringify(data),
+      }),
+
+    rename: (id: string, data: RenameWorkflowRequest) =>
+      request<{ workflow: WorkflowSummary }>(`/workflows/${id}`, {
+        method: 'PATCH',
+        body: JSON.stringify(data),
+      }),
+
+    delete: (id: string) =>
+      request<void>(`/workflows/${id}`, { method: 'DELETE' }),
+
+    activate: (id: string) =>
+      request<{ workflow: WorkflowSummary }>(`/workflows/${id}/activate`, {
+        method: 'POST',
+      }),
+
+    deactivate: (id: string) =>
+      request<{ workflow: WorkflowSummary }>(`/workflows/${id}/deactivate`, {
+        method: 'POST',
+      }),
+
+    duplicate: (id: string) =>
+      request<{ workflow: Workflow }>(`/workflows/${id}/duplicate`, {
+        method: 'POST',
+      }),
   },
 }
