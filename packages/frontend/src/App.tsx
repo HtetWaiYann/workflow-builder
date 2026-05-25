@@ -5,6 +5,7 @@ import { PublicRoute } from '@/components/PublicRoute'
 import { LoginPage } from '@/pages/LoginPage'
 import { RegisterPage } from '@/pages/RegisterPage'
 import { DashboardPage } from '@/pages/DashboardPage'
+import { CanvasPage } from '@/pages/CanvasPage'
 import { Toaster } from '@/components/ui/sonner'
 
 function AppRoutes() {
@@ -29,15 +30,24 @@ function AppRoutes() {
         }
       />
       <Route
-        path="/dashboard"
+        path="/workflows"
         element={
           <ProtectedRoute>
             <DashboardPage />
           </ProtectedRoute>
         }
       />
-      <Route path="/" element={<Navigate to="/dashboard" replace />} />
-      <Route path="*" element={<Navigate to="/dashboard" replace />} />
+      <Route
+        path="/workflows/:id"
+        element={
+          <ProtectedRoute>
+            <CanvasPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route path="/dashboard" element={<Navigate to="/workflows" replace />} />
+      <Route path="/" element={<Navigate to="/workflows" replace />} />
+      <Route path="*" element={<Navigate to="/workflows" replace />} />
     </Routes>
   )
 }

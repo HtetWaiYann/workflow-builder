@@ -125,6 +125,60 @@
   }
 }
 
+/* ─── React Flow canvas overrides ────────────────────────────────────────────
+   @xyflow/react/dist/style.css is imported first, so these rules win by
+   source-order without needing !important.
+   The canvas is always dark (bg-zinc-950), so we unconditionally use dark
+   palette values here.
+   ──────────────────────────────────────────────────────────────────────── */
+
+/* Controls container */
+.react-flow__controls {
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid oklch(1 0 0 / 14%);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+}
+
+/* Controls buttons */
+.react-flow__controls-button {
+  background-color: oklch(0.13 0.005 264);
+  border-bottom: 1px solid oklch(1 0 0 / 10%);
+  color: oklch(0.64 0.012 264);
+  fill: oklch(0.64 0.012 264);
+}
+
+.react-flow__controls-button:hover {
+  background-color: oklch(0.17 0.006 264);
+  color: oklch(0.93 0.005 264);
+  fill: oklch(0.93 0.005 264);
+}
+
+.react-flow__controls-button:last-child {
+  border-bottom: none;
+}
+
+/* Force SVG icons to inherit the button's color */
+.react-flow__controls-button svg {
+  fill: currentColor;
+}
+
+/* MiniMap container — dark + compact */
+.react-flow__minimap {
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid oklch(1 0 0 / 14%);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+  /* Override default size — React Flow v12 doesn't accept width/height props */
+  width: 140px !important;
+  height: 88px !important;
+}
+
+/* MiniMap SVG background */
+.react-flow__minimap-svg {
+  background-color: oklch(0.09 0.004 264);
+}
+
 /* Sonner toast semantic colors — light */
 :root {
   --toast-success-bg: oklch(0.97 0.03 152);
