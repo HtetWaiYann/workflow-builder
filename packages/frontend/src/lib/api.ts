@@ -6,6 +6,8 @@ import type {
   Workflow,
   CreateWorkflowRequest,
   RenameWorkflowRequest,
+  WorkflowNode,
+  WorkflowEdge,
 } from '@workflow-builder/shared'
 
 const BASE_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3001'
@@ -98,6 +100,18 @@ export const api = {
     duplicate: (id: string) =>
       request<{ workflow: Workflow }>(`/workflows/${id}/duplicate`, {
         method: 'POST',
+      }),
+
+    saveCanvas: (id: string, nodes: WorkflowNode[], edges: WorkflowEdge[]) =>
+      request<{ workflow: Workflow }>(`/workflows/${id}/graph`, {
+        method: 'PUT',
+        body: JSON.stringify({ nodes, edges }),
+      }),
+
+    updateWorkflowName: (id: string, name: string) =>
+      request<{ data: { id: string; name: string } }>(`/workflows/${id}/name`, {
+        method: 'PATCH',
+        body: JSON.stringify({ name }),
       }),
   },
 }
