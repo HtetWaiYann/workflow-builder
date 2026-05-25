@@ -291,6 +291,62 @@ describe('POST /workflows/:id/duplicate', () => {
   })
 })
 
+describe('PATCH /workflows/:id/name', () => {
+  beforeEach(() => vi.clearAllMocks())
+
+  it('updates the name and returns { data: { id, name } }', async () => {
+    vi.mocked(prisma.workflow.findFirst).mockResolvedValue(
+      mockWorkflow as never
+    )
+    vi.mocked(prisma.workflow.update).mockResolvedValue({
+      ...mockWorkflow,
+      name: 'New Name',
+    } as never)
+    const res = await request(app)
+      .patch('/workflows/wf-1/name')
+      .send({ name: 'New Name' })
+    expect(res.status).toBe(200)
+    expect(res.body.data).toEqual({ id: 'wf-1', name: 'New Name' })
+  })
+
+  it('returns 404 when workflow does not belong to workspace', async () => {
+    vi.mocked(prisma.workflow.findFirst).mockResolvedValue(null)
+    const res = await request(app)
+      .patch('/workflows/wf-1/name')
+      .send({ name: 'New Name' })
+    expect(res.status).toBe(404)
+    expect(res.body.code).toBe('NOT_FOUND')
+  })
+
+  it('returns 400 for an empty name', async () => {
+    const res = await request(app)
+      .patch('/workflows/wf-1/name')
+      .send({ name: '' })
+    expect(res.status).toBe(400)
+    expect(res.body.code).toBe('VALIDATION_ERROR')
+  })
+
+  it('returns 400 when name exceeds 255 characters', async () => {
+    const res = await request(app)
+      .patch('/workflows/wf-1/name')
+      .send({ name: 'a'.repeat(256) })
+    expect(res.status).toBe(400)
+    expect(res.body.code).toBe('VALIDATION_ERROR')
+  })
+
+  it('returns 500 on unexpected database error', async () => {
+    vi.mocked(prisma.workflow.findFirst).mockResolvedValue(
+      mockWorkflow as never
+    )
+    vi.mocked(prisma.workflow.update).mockRejectedValue(new Error('db error'))
+    const res = await request(app)
+      .patch('/workflows/wf-1/name')
+      .send({ name: 'Valid Name' })
+    expect(res.status).toBe(500)
+    expect(res.body.code).toBe('INTERNAL_ERROR')
+  })
+})
+
 describe('DELETE /workflows/:id', () => {
   beforeEach(() => vi.clearAllMocks())
 
