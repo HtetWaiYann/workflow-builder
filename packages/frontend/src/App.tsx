@@ -5,6 +5,7 @@ import { PublicRoute } from '@/components/PublicRoute'
 import { LoginPage } from '@/pages/LoginPage'
 import { RegisterPage } from '@/pages/RegisterPage'
 import { DashboardPage } from '@/pages/DashboardPage'
+import { Toaster } from '@/components/ui/sonner'
 
 function AppRoutes() {
   useInitAuth()
@@ -45,6 +46,7 @@ function App() {
   return (
     <BrowserRouter>
       <AppRoutes />
+      <Toaster />
     </BrowserRouter>
   )
 }

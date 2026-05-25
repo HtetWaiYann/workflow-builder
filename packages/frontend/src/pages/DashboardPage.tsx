@@ -1,6 +1,7 @@
 import * as React from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Plus, Search, LayoutGrid, AlertCircle } from 'lucide-react'
+import { toast } from 'sonner'
 import type { WorkflowSummary } from '@workflow-builder/shared'
 import { useWorkflowStore } from '@/stores/workflowStore'
 import { api } from '@/lib/api'
@@ -53,23 +54,51 @@ export function DashboardPage() {
   }
 
   async function handleDuplicate(id: string) {
-    const { workflow } = await api.workflows.duplicate(id)
-    addWorkflow(workflow)
+    try {
+      const { workflow } = await api.workflows.duplicate(id)
+      addWorkflow(workflow)
+      toast.success('Workflow duplicated')
+    } catch (err) {
+      toast.error(
+        err instanceof Error ? err.message : 'Failed to duplicate workflow'
+      )
+    }
   }
 
   async function handleActivate(id: string) {
-    const { workflow } = await api.workflows.activate(id)
-    updateWorkflow(workflow)
+    try {
+      const { workflow } = await api.workflows.activate(id)
+      updateWorkflow(workflow)
+      toast.success('Workflow activated')
+    } catch (err) {
+      toast.error(
+        err instanceof Error ? err.message : 'Failed to activate workflow'
+      )
+    }
   }
 
   async function handleDeactivate(id: string) {
-    const { workflow } = await api.workflows.deactivate(id)
-    updateWorkflow(workflow)
+    try {
+      const { workflow } = await api.workflows.deactivate(id)
+      updateWorkflow(workflow)
+      toast.success('Workflow deactivated')
+    } catch (err) {
+      toast.error(
+        err instanceof Error ? err.message : 'Failed to deactivate workflow'
+      )
+    }
   }
 
   async function handleDelete(id: string) {
-    await api.workflows.delete(id)
-    removeWorkflow(id)
+    try {
+      await api.workflows.delete(id)
+      removeWorkflow(id)
+      toast.success('Workflow deleted')
+    } catch (err) {
+      toast.error(
+        err instanceof Error ? err.message : 'Failed to delete workflow'
+      )
+    }
   }
 
   const [renamingWorkflow, setRenamingWorkflow] =
