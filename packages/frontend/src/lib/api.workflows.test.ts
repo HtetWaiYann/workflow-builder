@@ -123,3 +123,33 @@ describe('api.workflows.duplicate', () => {
     )
   })
 })
+
+describe('api.workflows.saveCanvas', () => {
+  it('PUTs nodes and edges to /workflows/:id/graph', async () => {
+    mockFetch(200, { workflow: fakeWorkflow })
+    const node = {
+      id: 'n1',
+      type: 'manual-trigger',
+      position: { x: 0, y: 0 },
+      data: {},
+    }
+    const result = await api.workflows.saveCanvas('wf-1', [node] as never, [])
+    expect(result.workflow.id).toBe('wf-1')
+    expect(fetch).toHaveBeenCalledWith(
+      expect.stringContaining('/workflows/wf-1/graph'),
+      expect.objectContaining({ method: 'PUT' })
+    )
+  })
+})
+
+describe('api.workflows.updateWorkflowName', () => {
+  it('PATCHes to /workflows/:id/name and returns { data: { id, name } }', async () => {
+    mockFetch(200, { data: { id: 'wf-1', name: 'Renamed' } })
+    const result = await api.workflows.updateWorkflowName('wf-1', 'Renamed')
+    expect(result.data).toEqual({ id: 'wf-1', name: 'Renamed' })
+    expect(fetch).toHaveBeenCalledWith(
+      expect.stringContaining('/workflows/wf-1/name'),
+      expect.objectContaining({ method: 'PATCH' })
+    )
+  })
+})
