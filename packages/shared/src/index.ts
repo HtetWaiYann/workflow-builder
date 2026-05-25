@@ -2,6 +2,71 @@ import { z } from 'zod'
 
 export const GREETING = 'Hello from @workflow-builder/shared!'
 
+// Node type definitions
+
+/**
+ * All available node type keys in the system.
+ */
+export type NodeType =
+  | 'manual-trigger'
+  | 'webhook-trigger'
+  | 'cron-trigger'
+  | 'http-request'
+  | 'run-js-code'
+  | 'if-condition'
+  | 'switch'
+  | 'merge'
+  | 'set-fields'
+  | 'filter-array'
+  | 'rename-keys'
+  | 'slack-message'
+  | 'send-email'
+  | 'delay'
+
+/**
+ * Group category for a node type.
+ */
+export type NodeGroup =
+  | 'Triggers'
+  | 'Actions'
+  | 'Logic'
+  | 'Transform'
+  | 'Notify'
+
+/**
+ * Definition of a port (input or output handle) on a node.
+ */
+export interface PortDefinition {
+  /** Handle id used by React Flow */
+  id: string
+  /** Display label shown on the node */
+  label: string
+}
+
+/**
+ * Static definition of a node type.
+ * Describes how a node looks and what ports it has.
+ * Does not contain instance data.
+ */
+export interface NodeTypeDefinition {
+  /** The node type key */
+  type: NodeType
+  /** Display name shown in palette and on canvas */
+  label: string
+  /** Short description shown in palette */
+  description: string
+  /** Group this node belongs to */
+  group: NodeGroup
+  /** Lucide icon name (string) */
+  icon: string
+  /** Hex color string for the node accent */
+  color: string
+  /** Input port definitions */
+  inputs: PortDefinition[]
+  /** Output port definitions */
+  outputs: PortDefinition[]
+}
+
 // Workflow node / edge schemas (React Flow shape)
 
 export const WorkflowNodeSchema = z.object({
