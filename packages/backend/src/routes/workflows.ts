@@ -307,6 +307,44 @@ router.post(
   }
 )
 
+router.patch(
+  '/:workflowId/name',
+  async (req: AuthRequest, res: Response): Promise<void> => {
+    const parsed = z
+      .object({ name: z.string().min(1).max(255) })
+      .safeParse(req.body)
+    if (!parsed.success) {
+      res.status(400).json({
+        error: parsed.error.issues[0]?.message ?? 'Invalid request',
+        code: 'VALIDATION_ERROR',
+      })
+      return
+    }
+
+    try {
+      const existing = await getOwnedWorkflow(
+        req.params.workflowId,
+        req.workspaceId!
+      )
+      if (!existing) {
+        res.status(404).json({ error: 'Workflow not found', code: 'NOT_FOUND' })
+        return
+      }
+
+      const updated = await prisma.workflow.update({
+        where: { id: req.params.workflowId },
+        data: { name: parsed.data.name },
+      })
+      res.json({ data: { id: updated.id, name: updated.name } })
+    } catch (err) {
+      logger.error({ err }, 'PATCH /workflows/:id/name failed')
+      res
+        .status(500)
+        .json({ error: 'Internal server error', code: 'INTERNAL_ERROR' })
+    }
+  }
+)
+
 router.delete(
   '/:workflowId',
   async (req: AuthRequest, res: Response): Promise<void> => {
