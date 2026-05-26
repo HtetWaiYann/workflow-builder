@@ -25,6 +25,7 @@ beforeEach(() => {
   vi.restoreAllMocks()
 })
 
+// Fetches the workflow list for the authenticated workspace.
 describe('api.workflows.list', () => {
   it('gets /workflows and returns the list', async () => {
     mockFetch(200, { workflows: [fakeWorkflowSummary] })
@@ -38,6 +39,7 @@ describe('api.workflows.list', () => {
   })
 })
 
+// Fetches a single workflow by id including its full nodes and edges.
 describe('api.workflows.get', () => {
   it('gets /workflows/:id and returns the full workflow', async () => {
     mockFetch(200, { workflow: fakeWorkflow })
@@ -50,6 +52,7 @@ describe('api.workflows.get', () => {
   })
 })
 
+// Creates a new DRAFT workflow with the given name and returns the full workflow object.
 describe('api.workflows.create', () => {
   it('posts to /workflows and returns the created workflow', async () => {
     mockFetch(201, { workflow: fakeWorkflow })
@@ -62,6 +65,7 @@ describe('api.workflows.create', () => {
   })
 })
 
+// Renames a workflow and returns the updated workflow summary.
 describe('api.workflows.rename', () => {
   it('patches /workflows/:id and returns the updated summary', async () => {
     mockFetch(200, { workflow: { ...fakeWorkflowSummary, name: 'Renamed' } })
@@ -74,6 +78,7 @@ describe('api.workflows.rename', () => {
   })
 })
 
+// Deletes a workflow by id; resolves to undefined on 204 No Content.
 describe('api.workflows.delete', () => {
   it('sends DELETE to /workflows/:id and resolves without a body', async () => {
     mockFetch(204, null)
@@ -85,6 +90,7 @@ describe('api.workflows.delete', () => {
   })
 })
 
+// Activates a workflow so it can receive trigger events.
 describe('api.workflows.activate', () => {
   it('posts to /workflows/:id/activate and returns ACTIVE status', async () => {
     mockFetch(200, { workflow: { ...fakeWorkflowSummary, status: 'ACTIVE' } })
@@ -97,6 +103,7 @@ describe('api.workflows.activate', () => {
   })
 })
 
+// Deactivates a workflow, stopping it from accepting new trigger events.
 describe('api.workflows.deactivate', () => {
   it('posts to /workflows/:id/deactivate and returns INACTIVE status', async () => {
     mockFetch(200, { workflow: { ...fakeWorkflowSummary, status: 'INACTIVE' } })
@@ -109,6 +116,7 @@ describe('api.workflows.deactivate', () => {
   })
 })
 
+// Duplicates a workflow as a new DRAFT with "(copy)" appended to its name.
 describe('api.workflows.duplicate', () => {
   it('posts to /workflows/:id/duplicate and returns the copy', async () => {
     mockFetch(201, {
@@ -124,6 +132,7 @@ describe('api.workflows.duplicate', () => {
   })
 })
 
+// Saves the canvas graph by PUTting the full nodes and edges arrays to the backend.
 describe('api.workflows.saveCanvas', () => {
   it('PUTs nodes and edges to /workflows/:id/graph', async () => {
     mockFetch(200, { workflow: fakeWorkflow })
@@ -142,6 +151,8 @@ describe('api.workflows.saveCanvas', () => {
   })
 })
 
+// Updates only the workflow's display name via a dedicated PATCH endpoint used by the
+// canvas toolbar for optimistic name edits.
 describe('api.workflows.updateWorkflowName', () => {
   it('PATCHes to /workflows/:id/name and returns { data: { id, name } }', async () => {
     mockFetch(200, { data: { id: 'wf-1', name: 'Renamed' } })

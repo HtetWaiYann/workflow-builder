@@ -5,6 +5,8 @@ import { NodePalette } from '@/components/canvas/NodePalette'
 
 beforeEach(() => vi.clearAllMocks())
 
+// Sidebar palette listing all available node types grouped by category. Supports
+// text search, collapsible groups, and drag-and-drop onto the canvas.
 describe('NodePalette', () => {
   it('renders all 5 group headers', () => {
     render(<NodePalette />)

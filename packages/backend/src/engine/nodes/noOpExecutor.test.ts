@@ -8,6 +8,8 @@ const ctx: ExecutionContext = {
   nodeOutputs: {},
 }
 
+// Pass-through node executor used for testing and placeholder nodes. Returns inputData
+// unchanged without inspecting nodeData or the execution context.
 describe('NoOpExecutor', () => {
   const executor = new NoOpExecutor()
 

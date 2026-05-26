@@ -26,6 +26,8 @@ function makeProps(overrides: Partial<NodeProps> = {}): NodeProps {
   } as NodeProps
 }
 
+// Custom React Flow node component shared by all workflow node types. Renders the node
+// label, description, and a selection border based on the node's registry entry.
 describe('WorkflowNode', () => {
   it('renders data.label as the node name', () => {
     render(

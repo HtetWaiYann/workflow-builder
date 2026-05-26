@@ -56,6 +56,8 @@ function setupPrismaDefaults() {
   vi.mocked(getExecutor).mockReturnValue(mockExecutor)
 }
 
+// Orchestrates workflow execution: sorts nodes topologically, calls each executor in order,
+// and persists run status to the database. Stops on the first error and never rethrows.
 describe('runWorkflow', () => {
   beforeEach(() => {
     mockExecutor.execute.mockResolvedValue({ result: 'done' })

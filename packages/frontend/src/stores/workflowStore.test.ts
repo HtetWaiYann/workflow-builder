@@ -28,6 +28,8 @@ describe('initial state', () => {
   })
 })
 
+// Replaces the entire workflow list, typically called after a successful /workflows fetch.
+// Clears loading state and any previous error.
 describe('setWorkflows', () => {
   it('replaces the list and clears loading and error', () => {
     useWorkflowStore.setState({ isLoading: true, error: 'old error' })
@@ -41,6 +43,8 @@ describe('setWorkflows', () => {
   })
 })
 
+// Inserts a newly created workflow at the front of the list so it appears first in the UI
+// without requiring a full refetch.
 describe('addWorkflow', () => {
   it('prepends the new workflow so it appears first', () => {
     useWorkflowStore.getState().setWorkflows([makeWorkflow('1')])
@@ -51,6 +55,8 @@ describe('addWorkflow', () => {
   })
 })
 
+// Replaces the matching workflow in the list by id, used for optimistic updates after
+// rename, activate, or deactivate operations.
 describe('updateWorkflow', () => {
   it('replaces the matching workflow by id', () => {
     useWorkflowStore.getState().setWorkflows([makeWorkflow('1', 'Old Name')])
@@ -67,6 +73,8 @@ describe('updateWorkflow', () => {
   })
 })
 
+// Removes the workflow with the given id from the list. Is a no-op when the id is not found,
+// used for optimistic deletes.
 describe('removeWorkflow', () => {
   it('removes the workflow with the given id', () => {
     useWorkflowStore
@@ -85,6 +93,7 @@ describe('removeWorkflow', () => {
   })
 })
 
+// Toggles the isLoading flag so the dashboard can show a loading indicator while fetching.
 describe('setLoading', () => {
   it('sets isLoading', () => {
     useWorkflowStore.getState().setLoading(true)
@@ -94,6 +103,8 @@ describe('setLoading', () => {
   })
 })
 
+// Stores an error message and clears isLoading so the UI can render an error state. Passing
+// null clears a previous error.
 describe('setError', () => {
   it('stores the error message and clears isLoading', () => {
     useWorkflowStore.setState({ isLoading: true })

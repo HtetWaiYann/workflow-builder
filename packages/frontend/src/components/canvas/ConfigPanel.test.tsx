@@ -25,6 +25,8 @@ beforeEach(() => {
   useCanvasStore.getState().reset()
 })
 
+// Sidebar panel that displays and edits the selected node's label and configuration.
+// Slides in when a node is selected and out when selection is cleared.
 describe('ConfigPanel', () => {
   it('has zero width when no node is selected', () => {
     render(<ConfigPanel />)

@@ -69,6 +69,8 @@ const mockWorkflowSummary = {
   updatedAt: NOW,
 }
 
+// Lists all workflows belonging to the caller's workspace sorted by most recently updated.
+// Returns summary objects (no nodes/edges) and an empty array when none exist.
 describe('GET /workflows', () => {
   beforeEach(() => vi.clearAllMocks())
 
@@ -102,6 +104,8 @@ describe('GET /workflows', () => {
   })
 })
 
+// Creates a new DRAFT workflow with empty nodes and edges. Validates that the name is present
+// and non-empty before writing to the database.
 describe('POST /workflows', () => {
   beforeEach(() => vi.clearAllMocks())
 
@@ -132,6 +136,8 @@ describe('POST /workflows', () => {
   })
 })
 
+// Fetches a single workflow by id, including the full nodes and edges arrays.
+// Returns 404 when the id doesn't exist or belongs to another workspace.
 describe('GET /workflows/:id', () => {
   beforeEach(() => vi.clearAllMocks())
 
@@ -153,6 +159,8 @@ describe('GET /workflows/:id', () => {
   })
 })
 
+// Renames an existing workflow. Returns a workflow summary (no nodes/edges) with the new name.
+// Validates the name field and returns 404 when the workflow is not found.
 describe('PATCH /workflows/:id (rename)', () => {
   beforeEach(() => vi.clearAllMocks())
 
@@ -185,6 +193,8 @@ describe('PATCH /workflows/:id (rename)', () => {
   })
 })
 
+// Saves the canvas by replacing the workflow's nodes and edges atomically.
+// Returns the full workflow with the updated graph on success.
 describe('PUT /workflows/:id/graph', () => {
   beforeEach(() => vi.clearAllMocks())
 
@@ -226,6 +236,8 @@ describe('PUT /workflows/:id/graph', () => {
   })
 })
 
+// Transitions the workflow's status to ACTIVE so it can receive trigger events.
+// Returns 404 when the workflow does not exist in the caller's workspace.
 describe('POST /workflows/:id/activate', () => {
   beforeEach(() => vi.clearAllMocks())
 
@@ -249,6 +261,7 @@ describe('POST /workflows/:id/activate', () => {
   })
 })
 
+// Transitions the workflow's status to INACTIVE, preventing it from accepting new triggers.
 describe('POST /workflows/:id/deactivate', () => {
   beforeEach(() => vi.clearAllMocks())
 
@@ -266,6 +279,8 @@ describe('POST /workflows/:id/deactivate', () => {
   })
 })
 
+// Creates a DRAFT copy of the workflow with the same nodes and edges, appending "(copy)"
+// to the name. Returns 404 when the source workflow does not exist.
 describe('POST /workflows/:id/duplicate', () => {
   beforeEach(() => vi.clearAllMocks())
 
@@ -291,6 +306,8 @@ describe('POST /workflows/:id/duplicate', () => {
   })
 })
 
+// Updates only the workflow's display name and returns a lean { data: { id, name } } shape
+// used for optimistic updates in the canvas toolbar. Validates length (1–255 chars).
 describe('PATCH /workflows/:id/name', () => {
   beforeEach(() => vi.clearAllMocks())
 
@@ -347,6 +364,8 @@ describe('PATCH /workflows/:id/name', () => {
   })
 })
 
+// Permanently removes the workflow from the database. Returns 204 No Content on success
+// and 404 when the workflow does not exist or belongs to a different workspace.
 describe('DELETE /workflows/:id', () => {
   beforeEach(() => vi.clearAllMocks())
 

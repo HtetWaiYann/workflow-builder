@@ -86,6 +86,9 @@ const formatExecution = (
 
 const executionSubRouter = Router({ mergeParams: true })
 
+// POST /workflows/:workflowId/executions — Triggers a new workflow run. Creates the execution
+// record and node run stubs in a transaction, then fires runWorkflow as a background job
+// (fire-and-forget). Responds immediately with 202 so the client can poll for status.
 executionSubRouter.post(
   '/',
   async (req: AuthRequest, res: Response): Promise<void> => {
@@ -147,6 +150,8 @@ executionSubRouter.post(
   }
 )
 
+// GET /workflows/:workflowId/executions — Lists recent executions for a workflow. Accepts an
+// optional ?limit query param (1–100, default 20), ordered by most recently created.
 executionSubRouter.get(
   '/',
   async (req: AuthRequest, res: Response): Promise<void> => {
@@ -188,6 +193,8 @@ export const executionDetailRouter = Router()
 
 executionDetailRouter.use(requireAuth, requireWorkspace)
 
+// GET /executions/:executionId — Fetches a single execution by id including all node run
+// records, ordered by start time. Returns 404 if the execution belongs to a different workspace.
 executionDetailRouter.get(
   '/:executionId',
   async (req: AuthRequest, res: Response): Promise<void> => {

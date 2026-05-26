@@ -25,6 +25,8 @@ function makeRes() {
   return res as unknown as Response
 }
 
+// Looks up the workspace for the authenticated user and attaches its id to the request.
+// Returns 403 NO_WORKSPACE when the user has no workspace record in the database.
 describe('requireWorkspace', () => {
   it('attaches workspaceId and calls next when workspace exists', async () => {
     vi.mocked(prisma.workspace.findUnique).mockResolvedValue({

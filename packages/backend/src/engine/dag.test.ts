@@ -15,6 +15,8 @@ const edge = (source: string, target: string): WorkflowEdge => ({
   target,
 })
 
+// Produces a topological sort of workflow nodes so the runner executes each node only after
+// all its upstream dependencies have finished. Nodes in cycles are excluded from the result.
 describe('buildExecutionOrder', () => {
   it('returns empty array for empty graph', () => {
     expect(buildExecutionOrder([], [])).toEqual([])
@@ -69,6 +71,8 @@ describe('buildExecutionOrder', () => {
   })
 })
 
+// Detects directed cycles in the workflow graph using DFS. Used by the runner to abort
+// execution early and mark the run as ERROR before any node is executed.
 describe('hasCycle', () => {
   it('returns false for an empty graph', () => {
     expect(hasCycle([], [])).toBe(false)

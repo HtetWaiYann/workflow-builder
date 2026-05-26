@@ -45,6 +45,8 @@ beforeEach(() => {
   })
 })
 
+// Top bar of the workflow canvas. Displays the workflow name with inline editing, a Save
+// button gated on unsaved changes, a dirty-state indicator, and navigation back to the list.
 describe('CanvasToolbar', () => {
   it('renders the workflow name', () => {
     renderToolbar()

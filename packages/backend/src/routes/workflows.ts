@@ -72,6 +72,8 @@ async function getOwnedWorkflow(workflowId: string, workspaceId: string) {
 
 // ── Routes ────────────────────────────────────────────────────────────────────
 
+// GET /workflows — Lists all workflows belonging to the caller's workspace, ordered by most
+// recently updated. Returns summary objects without nodes or edges.
 router.get('/', async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const workflows = await prisma.workflow.findMany({
@@ -95,6 +97,8 @@ router.get('/', async (req: AuthRequest, res: Response): Promise<void> => {
   }
 })
 
+// POST /workflows — Creates a new DRAFT workflow with empty nodes and edges. Requires a
+// non-empty name in the request body.
 router.post('/', async (req: AuthRequest, res: Response): Promise<void> => {
   const parsed = CreateWorkflowRequestSchema.safeParse(req.body)
   if (!parsed.success) {
@@ -124,6 +128,8 @@ router.post('/', async (req: AuthRequest, res: Response): Promise<void> => {
   }
 })
 
+// GET /workflows/:workflowId — Fetches a single workflow by id, including the full nodes and
+// edges arrays. Returns 404 if not found or not owned by the caller's workspace.
 router.get(
   '/:workflowId',
   async (req: AuthRequest, res: Response): Promise<void> => {
@@ -146,6 +152,8 @@ router.get(
   }
 )
 
+// PATCH /workflows/:workflowId — Renames the workflow using the RenameWorkflowRequest schema.
+// Returns a workflow summary (no nodes/edges) with the updated name.
 router.patch(
   '/:workflowId',
   async (req: AuthRequest, res: Response): Promise<void> => {
@@ -182,6 +190,8 @@ router.patch(
   }
 )
 
+// PUT /workflows/:workflowId/graph — Saves the canvas by replacing the workflow's nodes and
+// edges in one atomic update. Returns the full workflow with the new graph.
 router.put(
   '/:workflowId/graph',
   async (req: AuthRequest, res: Response): Promise<void> => {
@@ -221,6 +231,8 @@ router.put(
   }
 )
 
+// POST /workflows/:workflowId/activate — Transitions the workflow's status to ACTIVE, enabling
+// it to be triggered by cron or webhook events.
 router.post(
   '/:workflowId/activate',
   async (req: AuthRequest, res: Response): Promise<void> => {
@@ -248,6 +260,8 @@ router.post(
   }
 )
 
+// POST /workflows/:workflowId/deactivate — Transitions the workflow's status to INACTIVE,
+// stopping it from accepting new trigger events.
 router.post(
   '/:workflowId/deactivate',
   async (req: AuthRequest, res: Response): Promise<void> => {
@@ -275,6 +289,8 @@ router.post(
   }
 )
 
+// POST /workflows/:workflowId/duplicate — Creates a DRAFT copy of the source workflow with
+// the same nodes and edges, appending "(copy)" to the name.
 router.post(
   '/:workflowId/duplicate',
   async (req: AuthRequest, res: Response): Promise<void> => {
@@ -307,6 +323,8 @@ router.post(
   }
 )
 
+// PATCH /workflows/:workflowId/name — Updates only the workflow's display name. Returns a
+// lean { data: { id, name } } payload used by the canvas toolbar for optimistic updates.
 router.patch(
   '/:workflowId/name',
   async (req: AuthRequest, res: Response): Promise<void> => {
@@ -345,6 +363,8 @@ router.patch(
   }
 )
 
+// DELETE /workflows/:workflowId — Permanently removes the workflow and all associated data.
+// Responds with 204 No Content on success.
 router.delete(
   '/:workflowId',
   async (req: AuthRequest, res: Response): Promise<void> => {
