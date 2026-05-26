@@ -148,6 +148,7 @@ export const NodeRunStatusSchema = z.enum([
   'RUNNING',
   'SUCCESS',
   'ERROR',
+  'SKIPPED',
 ])
 export type ExecutionStatus = z.infer<typeof ExecutionStatusSchema>
 export type NodeRunStatus = z.infer<typeof NodeRunStatusSchema>
@@ -198,7 +199,7 @@ export interface NodeExecutor {
   readonly type: string
   /**
    * Executes the node logic.
-   * @param nodeData - The `data` object from the WorkflowNode (node config).
+   * @param nodeData - The `data` object from the WorkflowNode, with `{{ $vars.KEY }}` placeholders already resolved.
    * @param inputData - Resolved output of the immediately upstream node, or the trigger input for the first node.
    * @param context - Execution-wide context including all prior node outputs.
    * @returns The output data produced by this node.
@@ -210,6 +211,141 @@ export interface NodeExecutor {
     context: ExecutionContext
   ): Promise<Record<string, unknown>>
 }
+
+/**
+ * Reserved key in executor output for branching nodes (if-condition, switch).
+ * The value must match a sourceHandle on one of the node's outgoing edges.
+ */
+export const BRANCH_HANDLE_KEY = '_activeHandle' as const
+
+// Node config schemas (used by both backend executors and frontend forms)
+
+const HttpMethodSchema = z.enum(['GET', 'POST', 'PUT', 'PATCH', 'DELETE'])
+
+export const ManualTriggerConfigSchema = z.object({})
+
+export const WebhookTriggerConfigSchema = z.object({
+  method: HttpMethodSchema,
+  path: z.string().min(1),
+})
+
+export const CronTriggerConfigSchema = z.object({
+  schedule: z.string().min(1),
+})
+
+export const HttpRequestConfigSchema = z.object({
+  url: z.string().min(1),
+  method: HttpMethodSchema,
+  headers: z.string().default('{}'),
+  body: z.string().default('{}'),
+})
+
+export const RunJsCodeConfigSchema = z.object({
+  code: z.string(),
+})
+
+export const IfConditionConfigSchema = z.object({
+  field: z.string(),
+  operator: z.enum([
+    '==',
+    '!=',
+    '>',
+    '<',
+    '>=',
+    '<=',
+    'contains',
+    'not contains',
+  ]),
+  value: z.unknown(),
+})
+
+export const SwitchConfigSchema = z.object({
+  field: z.string(),
+  cases: z.array(z.object({ value: z.string(), label: z.string() })),
+})
+
+export const MergeConfigSchema = z.object({})
+
+export const SetFieldsConfigSchema = z.object({
+  fields: z.array(z.object({ key: z.string(), value: z.unknown() })),
+})
+
+export const FilterArrayConfigSchema = z.object({
+  expression: z.string(),
+})
+
+export const RenameKeysConfigSchema = z.object({
+  mappings: z.array(z.object({ from: z.string(), to: z.string() })),
+})
+
+export const SlackMessageConfigSchema = z.object({
+  webhookUrl: z.string().min(1),
+  message: z.string(),
+})
+
+export const SendEmailConfigSchema = z.object({
+  to: z.string().min(1),
+  subject: z.string(),
+  body: z.string(),
+  smtpHost: z.string().min(1),
+  smtpPort: z.coerce.number().int().positive(),
+  smtpUser: z.string().min(1),
+  smtpPass: z.string().min(1),
+  smtpFrom: z.string().min(1),
+})
+
+export const DelayConfigSchema = z.object({
+  duration: z.number().positive(),
+  unit: z.enum(['seconds', 'minutes', 'hours']),
+})
+
+export type ManualTriggerConfig = z.infer<typeof ManualTriggerConfigSchema>
+export type WebhookTriggerConfig = z.infer<typeof WebhookTriggerConfigSchema>
+export type CronTriggerConfig = z.infer<typeof CronTriggerConfigSchema>
+export type HttpRequestConfig = z.infer<typeof HttpRequestConfigSchema>
+export type RunJsCodeConfig = z.infer<typeof RunJsCodeConfigSchema>
+export type IfConditionConfig = z.infer<typeof IfConditionConfigSchema>
+export type SwitchConfig = z.infer<typeof SwitchConfigSchema>
+export type MergeConfig = z.infer<typeof MergeConfigSchema>
+export type SetFieldsConfig = z.infer<typeof SetFieldsConfigSchema>
+export type FilterArrayConfig = z.infer<typeof FilterArrayConfigSchema>
+export type RenameKeysConfig = z.infer<typeof RenameKeysConfigSchema>
+export type SlackMessageConfig = z.infer<typeof SlackMessageConfigSchema>
+export type SendEmailConfig = z.infer<typeof SendEmailConfigSchema>
+export type DelayConfig = z.infer<typeof DelayConfigSchema>
+
+// Workspace variable schemas
+
+export const WorkspaceVariableSchema = z.object({
+  id: z.string(),
+  workspaceId: z.string(),
+  key: z.string(),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+})
+export type WorkspaceVariable = z.infer<typeof WorkspaceVariableSchema>
+
+export const CreateWorkspaceVariableRequestSchema = z.object({
+  key: z
+    .string()
+    .min(1)
+    .max(100)
+    .regex(
+      /^[A-Z0-9_]+$/,
+      'Key must be uppercase letters, numbers, and underscores only'
+    ),
+  value: z.string().min(1),
+})
+export const UpdateWorkspaceVariableRequestSchema = z.object({
+  value: z.string().min(1),
+})
+
+export type CreateWorkspaceVariableRequest = z.infer<
+  typeof CreateWorkspaceVariableRequestSchema
+>
+export type UpdateWorkspaceVariableRequest = z.infer<
+  typeof UpdateWorkspaceVariableRequestSchema
+>
 
 // Auth schemas
 

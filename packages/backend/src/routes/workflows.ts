@@ -16,6 +16,10 @@ import { requireAuth } from '../middleware/auth'
 import type { AuthRequest } from '../middleware/auth'
 import { requireWorkspace } from '../middleware/workspace'
 import executionSubRouter from './executions'
+import {
+  scheduleCronWorkflow,
+  removeCronWorkflow,
+} from '../services/cronScheduler'
 
 const router = Router()
 
@@ -250,6 +254,14 @@ router.post(
         where: { id: req.params.workflowId },
         data: { status: 'ACTIVE' },
       })
+
+      scheduleCronWorkflow(req.params.workflowId, updated.nodes).catch((err) =>
+        logger.warn(
+          { err, workflowId: req.params.workflowId },
+          'Failed to schedule cron workflow'
+        )
+      )
+
       res.json({ workflow: formatWorkflowSummary(updated) })
     } catch (err) {
       logger.error({ err }, 'POST /workflows/:id/activate failed')
@@ -279,6 +291,14 @@ router.post(
         where: { id: req.params.workflowId },
         data: { status: 'INACTIVE' },
       })
+
+      removeCronWorkflow(req.params.workflowId).catch((err) =>
+        logger.warn(
+          { err, workflowId: req.params.workflowId },
+          'Failed to remove cron workflow'
+        )
+      )
+
       res.json({ workflow: formatWorkflowSummary(updated) })
     } catch (err) {
       logger.error({ err }, 'POST /workflows/:id/deactivate failed')
