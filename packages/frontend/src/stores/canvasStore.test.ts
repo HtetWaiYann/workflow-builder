@@ -47,6 +47,8 @@ afterEach(() => {
   vi.useRealTimers()
 })
 
+// Verifies the store boots in a fully idle state with no workflow loaded, no selection,
+// and all async flags set to their off values.
 describe('initial state', () => {
   it('starts empty and idle', () => {
     const s = useCanvasStore.getState()
@@ -63,6 +65,8 @@ describe('initial state', () => {
   })
 })
 
+// Wipes all canvas state back to initial values. Called when navigating away from the
+// editor so stale workflow data never leaks into the next session.
 describe('reset', () => {
   it('clears all state back to initial values', () => {
     useCanvasStore.setState({
@@ -82,6 +86,7 @@ describe('reset', () => {
   })
 })
 
+// Replaces the node list and marks the canvas dirty so the auto-save timer fires.
 describe('setNodes', () => {
   it('replaces the node list and marks dirty', () => {
     const node = {
@@ -98,6 +103,7 @@ describe('setNodes', () => {
   })
 })
 
+// Replaces the edge list and marks the canvas dirty so the auto-save timer fires.
 describe('setEdges', () => {
   it('replaces the edge list and marks dirty', () => {
     const edge = { id: 'e1', source: 'n1', target: 'n2' }
@@ -107,6 +113,8 @@ describe('setEdges', () => {
   })
 })
 
+// Appends a new node at the given canvas position with a generated id, the correct node
+// type, and the default label from the node registry.
 describe('addNode', () => {
   it('appends a new node with the correct type, label, and position', () => {
     useCanvasStore.getState().addNode('manual-trigger', { x: 100, y: 200 })
@@ -124,6 +132,7 @@ describe('addNode', () => {
   })
 })
 
+// Sets or clears the selected node id, which drives the ConfigPanel's open/close state.
 describe('selectNode', () => {
   it('sets the selected node id', () => {
     useCanvasStore.getState().selectNode('n1')
@@ -137,6 +146,8 @@ describe('selectNode', () => {
   })
 })
 
+// Updates the display label of a specific node by id and marks the canvas dirty.
+// Is a no-op when the node id is not found.
 describe('updateNodeLabel', () => {
   it('updates the label of the matching node', () => {
     useCanvasStore.setState({
@@ -184,6 +195,7 @@ describe('updateNodeLabel', () => {
   })
 })
 
+// Merges a partial config object into the node's data.config and marks the canvas dirty.
 describe('updateNodeConfig', () => {
   it('updates the config of the matching node and marks dirty', () => {
     useCanvasStore.setState({
@@ -204,6 +216,8 @@ describe('updateNodeConfig', () => {
   })
 })
 
+// Fetches a workflow from the API and hydrates the canvas store. Sets isLoading during the
+// request and clears it on completion. Maps NOT_FOUND errors to a specific error code.
 describe('loadWorkflow', () => {
   it('populates state from the API response and clears loading', async () => {
     mockGet.mockResolvedValue({
@@ -247,6 +261,8 @@ describe('loadWorkflow', () => {
   })
 })
 
+// Persists the current nodes and edges to the backend. Clears isDirty on success and
+// isSaving on both success and failure. Is a no-op when no workflow is loaded.
 describe('saveCanvas', () => {
   it('is a no-op when workflowId is not set', async () => {
     await useCanvasStore.getState().saveCanvas()
@@ -273,6 +289,8 @@ describe('saveCanvas', () => {
   })
 })
 
+// Optimistically updates the workflow name in the store before the API call resolves.
+// On failure the optimistic name stays in place rather than reverting.
 describe('updateWorkflowName', () => {
   it('is a no-op when workflowId is not set', async () => {
     await useCanvasStore.getState().updateWorkflowName('New')
@@ -297,6 +315,8 @@ describe('updateWorkflowName', () => {
   })
 })
 
+// Toggles between ACTIVE and INACTIVE (or DRAFT → ACTIVE). Calls the appropriate
+// activate/deactivate API endpoint and reflects the new status from the response.
 describe('toggleWorkflowStatus', () => {
   it('deactivates an ACTIVE workflow', async () => {
     mockDeactivate.mockResolvedValue({
@@ -329,6 +349,8 @@ describe('toggleWorkflowStatus', () => {
   })
 })
 
+// Sets isDirty immediately and schedules a debounced auto-save after 2 seconds. Multiple
+// rapid calls collapse into a single save, preventing redundant API requests.
 describe('markDirty', () => {
   it('sets isDirty=true immediately', () => {
     useCanvasStore.getState().markDirty()

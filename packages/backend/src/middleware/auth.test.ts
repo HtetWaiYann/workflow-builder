@@ -16,6 +16,8 @@ function makeRes() {
   return res as unknown as Response
 }
 
+// Guards routes from unauthenticated requests. Reads the JWT from the httpOnly cookie,
+// attaches userId and userEmail to the request on success, and rejects with 401 otherwise.
 describe('requireAuth', () => {
   it('attaches userId and userEmail then calls next for a valid token cookie', () => {
     const token = signToken({ id: 'user-1', email: 'user@test.com' })

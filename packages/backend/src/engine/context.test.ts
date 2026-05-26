@@ -1,6 +1,8 @@
 import { describe, it, expect } from 'vitest'
 import { createExecutionContext } from './context'
 
+// Factory that creates a fresh ExecutionContext for each workflow run. Each context gets its
+// own nodeOutputs map so concurrent runs never share output state.
 describe('createExecutionContext', () => {
   it('sets executionId and workflowId from arguments', () => {
     const ctx = createExecutionContext('exec-1', 'wf-1')

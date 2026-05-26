@@ -91,6 +91,8 @@ function mockTxResolve(result: unknown): void {
   ).mockResolvedValue(result)
 }
 
+// Triggers a new workflow execution. Creates the execution record and node run stubs in a
+// transaction, fires runWorkflow as a background job, and immediately returns 202.
 describe('POST /workflows/:id/executions', () => {
   beforeEach(() => vi.clearAllMocks())
 
@@ -150,6 +152,8 @@ describe('POST /workflows/:id/executions', () => {
   })
 })
 
+// Lists recent executions for a workflow as summary objects (no nodeRuns). Accepts an optional
+// ?limit param and returns 404 when the workflow doesn't exist.
 describe('GET /workflows/:id/executions', () => {
   beforeEach(() => vi.clearAllMocks())
 
@@ -191,6 +195,8 @@ describe('GET /workflows/:id/executions', () => {
   })
 })
 
+// Fetches a single execution by id, including the full nodeRuns array. Returns 404 when the
+// execution doesn't exist or belongs to a different workspace.
 describe('GET /executions/:id', () => {
   beforeEach(() => vi.clearAllMocks())
 
