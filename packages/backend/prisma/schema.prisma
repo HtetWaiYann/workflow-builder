@@ -18,10 +18,76 @@ model User {
 }
 
 model Workspace {
-  id        String   @id @default(cuid())
+  id        String     @id @default(cuid())
   name      String
-  userId    String   @unique
-  user      User     @relation(fields: [userId], references: [id])
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  userId    String     @unique
+  user      User       @relation(fields: [userId], references: [id])
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  workflows Workflow[]
+}
+
+enum WorkflowStatus {
+  DRAFT
+  ACTIVE
+  INACTIVE
+}
+
+enum ExecutionStatus {
+  PENDING
+  RUNNING
+  SUCCESS
+  ERROR
+}
+
+enum NodeRunStatus {
+  PENDING
+  RUNNING
+  SUCCESS
+  ERROR
+}
+
+model Workflow {
+  id          String         @id @default(cuid())
+  workspaceId String
+  workspace   Workspace      @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  name        String
+  status      WorkflowStatus @default(DRAFT)
+  nodes       Json           @default("[]")
+  edges       Json           @default("[]")
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  executions  Execution[]
+
+  @@index([workspaceId])
+}
+
+model Execution {
+  id         String            @id @default(cuid())
+  workflowId String
+  workflow   Workflow          @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  status     ExecutionStatus   @default(PENDING)
+  inputData  Json?
+  startedAt  DateTime?
+  finishedAt DateTime?
+  createdAt  DateTime          @default(now())
+  nodeRuns   ExecutionNodeRun[]
+
+  @@index([workflowId])
+}
+
+model ExecutionNodeRun {
+  id          String        @id @default(cuid())
+  executionId String
+  execution   Execution     @relation(fields: [executionId], references: [id], onDelete: Cascade)
+  nodeId      String
+  status      NodeRunStatus @default(PENDING)
+  inputData   Json?
+  outputData  Json?
+  error       String?
+  startedAt   DateTime?
+  finishedAt  DateTime?
+
+  @@unique([executionId, nodeId])
+  @@index([executionId])
 }

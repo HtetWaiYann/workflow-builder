@@ -35,7 +35,7 @@ export function RegisterPage() {
         name: name || undefined,
       })
       setAuth(user, workspace)
-      navigate('/')
+      navigate('/dashboard')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Registration failed')
     } finally {
@@ -55,7 +55,11 @@ export function RegisterPage() {
         <form onSubmit={handleSubmit} className="flex flex-col gap-6">
           <CardContent className="flex flex-col gap-4">
             {error && (
-              <p role="alert" aria-live="polite" className="text-destructive text-sm">
+              <p
+                role="alert"
+                aria-live="polite"
+                className="text-destructive text-sm"
+              >
                 {error}
               </p>
             )}

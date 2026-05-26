@@ -80,7 +80,7 @@ describe('LoginPage', () => {
 
     await waitFor(() => {
       expect(useAuthStore.getState().user).toEqual(fakeResponse.user)
-      expect(mockNavigate).toHaveBeenCalledWith('/')
+      expect(mockNavigate).toHaveBeenCalledWith('/dashboard')
     })
   })
 

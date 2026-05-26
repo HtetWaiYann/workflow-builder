@@ -43,6 +43,8 @@ const formatWorkspace = (ws: {
   createdAt: ws.createdAt.toISOString(),
 })
 
+// POST /auth/register — Creates a new user account, hashes the password, provisions a default
+// workspace, and responds with an httpOnly JWT cookie on success.
 router.post('/register', async (req, res: Response) => {
   try {
     const result = RegisterRequestSchema.safeParse(req.body)
@@ -93,6 +95,8 @@ router.post('/register', async (req, res: Response) => {
   }
 })
 
+// POST /auth/login — Verifies email and password against the stored bcrypt hash and issues a
+// JWT cookie on success. Returns 401 for missing users or wrong passwords.
 router.post('/login', async (req, res: Response) => {
   try {
     const result = LoginRequestSchema.safeParse(req.body)
@@ -131,11 +135,15 @@ router.post('/login', async (req, res: Response) => {
   }
 })
 
+// POST /auth/logout — Expires the JWT cookie to end the session. Safe to call when already
+// unauthenticated; requires no request body.
 router.post('/logout', (_req, res: Response) => {
   res.clearCookie('token')
   res.json({ success: true })
 })
 
+// GET /auth/me — Returns the authenticated user's profile and workspace. Requires a valid
+// JWT cookie; used on page load to restore an existing session.
 router.get('/me', requireAuth, async (req: AuthRequest, res: Response) => {
   try {
     const user = await prisma.user.findUnique({
