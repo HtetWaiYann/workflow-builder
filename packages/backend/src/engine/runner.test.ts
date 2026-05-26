@@ -9,6 +9,13 @@ vi.mock('../db/client', () => ({
     executionNodeRun: {
       findFirst: vi.fn(),
       update: vi.fn(),
+      updateMany: vi.fn(),
+    },
+    workflow: {
+      findUnique: vi.fn(),
+    },
+    workspaceVariable: {
+      findMany: vi.fn(),
     },
   },
 }))
@@ -25,6 +32,12 @@ import { runWorkflow } from './runner'
 import { prisma } from '../db/client'
 import { getExecutor } from './registry'
 import type { WorkflowNode, WorkflowEdge } from '@workflow-builder/shared'
+
+// Suppress encryption errors in tests — workspace variables return empty map
+vi.mock('../services/encryptionService', () => ({
+  decrypt: vi.fn().mockReturnValue('decrypted-value'),
+  encrypt: vi.fn(),
+}))
 
 const makeNode = (id: string, type = 'mock'): WorkflowNode => ({
   id,
@@ -53,6 +66,11 @@ function setupPrismaDefaults() {
     id: 'nr-1',
   } as never)
   vi.mocked(prisma.executionNodeRun.update).mockResolvedValue({} as never)
+  vi.mocked(prisma.executionNodeRun.updateMany).mockResolvedValue({} as never)
+  vi.mocked(prisma.workflow.findUnique).mockResolvedValue({
+    workspaceId: 'ws-1',
+  } as never)
+  vi.mocked(prisma.workspaceVariable.findMany).mockResolvedValue([])
   vi.mocked(getExecutor).mockReturnValue(mockExecutor)
 }
 
