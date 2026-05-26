@@ -234,7 +234,7 @@ describe('loadWorkflow', () => {
   })
 
   it('sets isLoading=true during the request', async () => {
-    let resolveGet!: (v: unknown) => void
+    let resolveGet!: (v: { workflow: typeof fakeWorkflow }) => void
     mockGet.mockReturnValue(
       new Promise((r) => {
         resolveGet = r
