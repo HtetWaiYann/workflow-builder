@@ -2,9 +2,15 @@ import type {
   AuthResponse,
   RegisterRequest,
   LoginRequest,
+  WorkflowSummary,
+  Workflow,
+  CreateWorkflowRequest,
+  RenameWorkflowRequest,
+  WorkflowNode,
+  WorkflowEdge,
 } from '@workflow-builder/shared'
 
-const BASE_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3000'
+const BASE_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3001'
 
 /**
  * Sends a JSON request to the API with credentials (cookies) included.
@@ -36,6 +42,8 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
     throw err
   }
 
+  // 204 No Content — body is empty and res.json() would throw
+  if (res.status === 204) return undefined as T
   return res.json() as Promise<T>
 }
 
@@ -57,5 +65,53 @@ export const api = {
       request<{ success: boolean }>('/auth/logout', { method: 'POST' }),
 
     me: () => request<AuthResponse>('/auth/me'),
+  },
+
+  workflows: {
+    list: () => request<{ workflows: WorkflowSummary[] }>('/workflows'),
+
+    get: (id: string) => request<{ workflow: Workflow }>(`/workflows/${id}`),
+
+    create: (data: CreateWorkflowRequest) =>
+      request<{ workflow: Workflow }>('/workflows', {
+        method: 'POST',
+        body: JSON.stringify(data),
+      }),
+
+    rename: (id: string, data: RenameWorkflowRequest) =>
+      request<{ workflow: WorkflowSummary }>(`/workflows/${id}`, {
+        method: 'PATCH',
+        body: JSON.stringify(data),
+      }),
+
+    delete: (id: string) =>
+      request<void>(`/workflows/${id}`, { method: 'DELETE' }),
+
+    activate: (id: string) =>
+      request<{ workflow: WorkflowSummary }>(`/workflows/${id}/activate`, {
+        method: 'POST',
+      }),
+
+    deactivate: (id: string) =>
+      request<{ workflow: WorkflowSummary }>(`/workflows/${id}/deactivate`, {
+        method: 'POST',
+      }),
+
+    duplicate: (id: string) =>
+      request<{ workflow: Workflow }>(`/workflows/${id}/duplicate`, {
+        method: 'POST',
+      }),
+
+    saveCanvas: (id: string, nodes: WorkflowNode[], edges: WorkflowEdge[]) =>
+      request<{ workflow: Workflow }>(`/workflows/${id}/graph`, {
+        method: 'PUT',
+        body: JSON.stringify({ nodes, edges }),
+      }),
+
+    updateWorkflowName: (id: string, name: string) =>
+      request<{ data: { id: string; name: string } }>(`/workflows/${id}/name`, {
+        method: 'PATCH',
+        body: JSON.stringify({ name }),
+      }),
   },
 }

@@ -30,7 +30,7 @@ export function LoginPage() {
     try {
       const { user, workspace } = await api.auth.login({ email, password })
       setAuth(user, workspace)
-      navigate('/')
+      navigate('/dashboard')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Login failed')
     } finally {
@@ -50,7 +50,11 @@ export function LoginPage() {
         <form onSubmit={handleSubmit} className="flex flex-col gap-6">
           <CardContent className="flex flex-col gap-4">
             {error && (
-              <p role="alert" aria-live="polite" className="text-destructive text-sm">
+              <p
+                role="alert"
+                aria-live="polite"
+                className="text-destructive text-sm"
+              >
                 {error}
               </p>
             )}

@@ -5,10 +5,12 @@ import cookieParser from 'cookie-parser'
 import { logger } from './lib/logger'
 import { checkDbConnection } from './db/client'
 import authRouter from './routes/auth'
+import workflowRouter from './routes/workflows'
+import { executionDetailRouter } from './routes/executions'
 
 const app = express()
 const PORT = process.env.PORT || 3001
-const CORS_ORIGIN = process.env.CORS_ORIGIN;
+const CORS_ORIGIN = process.env.CORS_ORIGIN
 
 app.use(cors({ origin: CORS_ORIGIN, credentials: true }))
 app.use(express.json())
@@ -19,10 +21,12 @@ app.get('/health', (_req, res) => {
 })
 
 app.use('/auth', authRouter)
+app.use('/workflows', workflowRouter)
+app.use('/executions', executionDetailRouter)
 
 /** Validates required env vars, opens the DB connection, then starts the HTTP server. */
 async function start() {
-  const requiredEnvVars = ['DATABASE_URL', 'JWT_SECRET']
+  const requiredEnvVars = ['DATABASE_URL', 'JWT_SECRET', 'CORS_ORIGIN']
   const missing = requiredEnvVars.filter((key) => !process.env[key])
   if (missing.length > 0) {
     logger.fatal({ missing }, 'Missing required environment variables')
