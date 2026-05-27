@@ -59,9 +59,9 @@ export function TopBar() {
         <DropdownMenuContent align="end" className="w-52">
           <DropdownMenuLabel>{user?.name ?? user?.email}</DropdownMenuLabel>
           <DropdownMenuSeparator />
-          <DropdownMenuItem>
+          <DropdownMenuItem onSelect={() => navigate('/settings/variables')}>
             <Settings />
-            Settings
+            Workspace Variables
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem variant="destructive" onSelect={handleLogout}>

@@ -6,6 +6,7 @@ import { LoginPage } from '@/pages/LoginPage'
 import { RegisterPage } from '@/pages/RegisterPage'
 import { DashboardPage } from '@/pages/DashboardPage'
 import { CanvasPage } from '@/pages/CanvasPage'
+import { VariablesPage } from '@/pages/VariablesPage'
 import { Toaster } from '@/components/ui/sonner'
 
 function AppRoutes() {
@@ -42,6 +43,14 @@ function AppRoutes() {
         element={
           <ProtectedRoute>
             <CanvasPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/settings/variables"
+        element={
+          <ProtectedRoute>
+            <VariablesPage />
           </ProtectedRoute>
         }
       />
