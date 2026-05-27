@@ -183,7 +183,11 @@ export async function runWorkflow(
       }
 
       try {
-        const resolvedNodeData = resolveVariables(node.data, vars)
+        const resolvedNodeData = resolveVariables(
+          node.data,
+          vars,
+          nodeInputData
+        )
         const output = await executor.execute(
           resolvedNodeData,
           nodeInputData,
