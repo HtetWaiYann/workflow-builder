@@ -1,3 +1,4 @@
+import * as React from 'react'
 import {
   ReactFlow,
   ReactFlowProvider,
@@ -48,16 +49,40 @@ function CanvasFlow() {
   const selectNode = useCanvasStore((s) => s.selectNode)
   const markDirty = useCanvasStore((s) => s.markDirty)
   const addNode = useCanvasStore((s) => s.addNode)
+  const pushHistory = useCanvasStore((s) => s.pushHistory)
+
+  // Tracks whether a node drag is currently in progress to avoid pushing
+  // a history snapshot on every drag-move frame (only push on drag start).
+  const isDraggingRef = React.useRef(false)
 
   function onNodesChange(changes: NodeChange[]) {
+    const hasRemove = changes.some((c) => c.type === 'remove')
+    const dragStarting =
+      !isDraggingRef.current &&
+      changes.some(
+        (c) => c.type === 'position' && 'dragging' in c && c.dragging === true
+      )
+
+    if (hasRemove || dragStarting) {
+      pushHistory()
+    }
+
+    isDraggingRef.current = changes.some(
+      (c) => c.type === 'position' && 'dragging' in c && c.dragging === true
+    )
+
     setNodes(applyNodeChanges(changes, nodes))
   }
 
   function onEdgesChange(changes: EdgeChange[]) {
+    if (changes.some((c) => c.type === 'remove')) {
+      pushHistory()
+    }
     setEdges(applyEdgeChanges(changes, edges))
   }
 
   function onConnect(connection: Connection) {
+    pushHistory()
     setEdges(addEdge(connection, edges))
     markDirty()
   }

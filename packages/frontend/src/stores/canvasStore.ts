@@ -10,6 +10,13 @@ import type {
 } from '@workflow-builder/shared'
 import { api } from '@/lib/api'
 import { getNodeDefinition } from '@/lib/nodeRegistry'
+import { hasCycle } from '@/lib/dagUtils'
+import { toast } from 'sonner'
+
+interface HistoryEntry {
+  nodes: Node[]
+  edges: Edge[]
+}
 
 interface CanvasStore {
   workflowId: string | null
@@ -22,6 +29,8 @@ interface CanvasStore {
   isSaving: boolean
   isLoading: boolean
   error: string | null
+  canUndo: boolean
+  canRedo: boolean
 
   /**
    * Loads a workflow from the API and populates nodes and edges.
@@ -73,11 +82,28 @@ interface CanvasStore {
   /** Sets isDirty=true and schedules an auto-save after 2 s. */
   markDirty(): void
 
+  /**
+   * Saves a snapshot of the current nodes and edges onto the undo stack
+   * and clears the redo stack. Call this before any destructive canvas change.
+   */
+  pushHistory(): void
+
+  /** Restores the previous canvas snapshot. No-op if history is empty. */
+  undo(): void
+
+  /** Re-applies the next canvas snapshot after an undo. No-op if no future. */
+  redo(): void
+
   /** Resets all state to initial values and cancels any pending auto-save. */
   reset(): void
 }
 
 let saveTimer: ReturnType<typeof setTimeout> | null = null
+
+// Module-level stacks — session-only, not persisted
+let undoPast: HistoryEntry[] = []
+let redoFuture: HistoryEntry[] = []
+const HISTORY_LIMIT = 50
 
 export const useCanvasStore = create<CanvasStore>()(
   immer<CanvasStore>((set, get) => ({
@@ -91,6 +117,8 @@ export const useCanvasStore = create<CanvasStore>()(
     isSaving: false,
     isLoading: false,
     error: null,
+    canUndo: false,
+    canRedo: false,
 
     loadWorkflow: async (id) => {
       set((draft) => {
@@ -148,6 +176,7 @@ export const useCanvasStore = create<CanvasStore>()(
     },
 
     addNode: (type, position) => {
+      get().pushHistory()
       const def = getNodeDefinition(type)
       const newNode: Node = {
         id: createId(),
@@ -208,6 +237,13 @@ export const useCanvasStore = create<CanvasStore>()(
           draft.isSaving = false
           draft.isDirty = false
         })
+        if (state.workflowStatus === 'ACTIVE' && hasCycle(nodes, edges)) {
+          toast.warning('Active workflow has a cycle', {
+            id: 'cycle-warning',
+            description:
+              'Remove the circular connection — this workflow cannot run.',
+          })
+        }
       } catch {
         set((draft) => {
           draft.isSaving = false
@@ -261,7 +297,57 @@ export const useCanvasStore = create<CanvasStore>()(
       }, 2000)
     },
 
+    pushHistory: () => {
+      const { nodes, edges } = get()
+      undoPast.push({
+        nodes: structuredClone(nodes),
+        edges: structuredClone(edges),
+      })
+      redoFuture = []
+      if (undoPast.length > HISTORY_LIMIT) undoPast.shift()
+      set((draft) => {
+        draft.canUndo = true
+        draft.canRedo = false
+      })
+    },
+
+    undo: () => {
+      const prev = undoPast.pop()
+      if (!prev) return
+      const { nodes, edges } = get()
+      redoFuture.unshift({
+        nodes: structuredClone(nodes),
+        edges: structuredClone(edges),
+      })
+      set((draft) => {
+        draft.nodes = prev.nodes
+        draft.edges = prev.edges
+        draft.canUndo = undoPast.length > 0
+        draft.canRedo = true
+      })
+      get().markDirty()
+    },
+
+    redo: () => {
+      const next = redoFuture.shift()
+      if (!next) return
+      const { nodes, edges } = get()
+      undoPast.push({
+        nodes: structuredClone(nodes),
+        edges: structuredClone(edges),
+      })
+      set((draft) => {
+        draft.nodes = next.nodes
+        draft.edges = next.edges
+        draft.canUndo = true
+        draft.canRedo = redoFuture.length > 0
+      })
+      get().markDirty()
+    },
+
     reset: () => {
+      undoPast = []
+      redoFuture = []
       if (saveTimer !== null) {
         clearTimeout(saveTimer)
         saveTimer = null
@@ -277,6 +363,8 @@ export const useCanvasStore = create<CanvasStore>()(
         draft.isSaving = false
         draft.isLoading = false
         draft.error = null
+        draft.canUndo = false
+        draft.canRedo = false
       })
     },
   }))
