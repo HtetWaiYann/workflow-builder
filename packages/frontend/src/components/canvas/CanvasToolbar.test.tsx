@@ -141,8 +141,14 @@ describe('CanvasToolbar', () => {
     expect(screen.queryByTitle('Unsaved changes')).not.toBeInTheDocument()
   })
 
-  it('Run button is always disabled', () => {
+  it('Run button is disabled when no workflow is loaded', () => {
+    useCanvasStore.setState({ workflowId: null })
     renderToolbar()
     expect(screen.getByRole('button', { name: /run/i })).toBeDisabled()
+  })
+
+  it('Run button is enabled when a workflow is loaded', () => {
+    renderToolbar()
+    expect(screen.getByRole('button', { name: /run/i })).not.toBeDisabled()
   })
 })
