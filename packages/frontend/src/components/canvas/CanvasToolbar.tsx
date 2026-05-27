@@ -1,11 +1,15 @@
 import * as React from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ArrowLeft, Loader2, Play } from 'lucide-react'
+import { ArrowLeft, Loader2, Play, Undo2, Redo2 } from 'lucide-react'
+import { toast } from 'sonner'
 import { useCanvasStore } from '@/stores/canvasStore'
+import { useExecutionStore } from '@/stores/executionStore'
 import { Button } from '@/components/ui/button'
+import { hasCycle } from '@/lib/dagUtils'
 
 export function CanvasToolbar() {
   const navigate = useNavigate()
+  const workflowId = useCanvasStore((s) => s.workflowId)
   const workflowName = useCanvasStore((s) => s.workflowName)
   const workflowStatus = useCanvasStore((s) => s.workflowStatus)
   const isDirty = useCanvasStore((s) => s.isDirty)
@@ -13,6 +17,16 @@ export function CanvasToolbar() {
   const saveCanvas = useCanvasStore((s) => s.saveCanvas)
   const updateWorkflowName = useCanvasStore((s) => s.updateWorkflowName)
   const toggleWorkflowStatus = useCanvasStore((s) => s.toggleWorkflowStatus)
+  const canUndo = useCanvasStore((s) => s.canUndo)
+  const canRedo = useCanvasStore((s) => s.canRedo)
+  const undo = useCanvasStore((s) => s.undo)
+  const redo = useCanvasStore((s) => s.redo)
+  const nodes = useCanvasStore((s) => s.nodes)
+  const edges = useCanvasStore((s) => s.edges)
+  const isTriggering = useExecutionStore((s) => s.isTriggering)
+  const triggerExecution = useExecutionStore((s) => s.triggerExecution)
+
+  const cycleDetected = hasCycle(nodes, edges)
 
   // null = not editing; string = in-progress edit buffer
   const [editBuffer, setEditBuffer] = React.useState<string | null>(null)
@@ -99,6 +113,29 @@ export function CanvasToolbar() {
       {/* Right */}
       <div className="flex flex-shrink-0 items-center gap-2">
         <Button
+          variant="ghost"
+          size="sm"
+          className="h-8 w-8 p-0"
+          disabled={!canUndo}
+          onClick={undo}
+          aria-label="Undo (Ctrl+Z)"
+          title="Undo (Ctrl+Z)"
+        >
+          <Undo2 className="size-4" />
+        </Button>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="h-8 w-8 p-0"
+          disabled={!canRedo}
+          onClick={redo}
+          aria-label="Redo (Ctrl+Shift+Z)"
+          title="Redo (Ctrl+Shift+Z)"
+        >
+          <Redo2 className="size-4" />
+        </Button>
+
+        <Button
           variant="outline"
           size="sm"
           className="h-8"
@@ -115,8 +152,26 @@ export function CanvasToolbar() {
           )}
         </Button>
 
-        <Button size="sm" className="h-8" disabled>
-          <Play className="size-3.5" />
+        <Button
+          size="sm"
+          className="h-8"
+          disabled={!workflowId || isTriggering}
+          onClick={() => {
+            if (!workflowId) return
+            if (cycleDetected) {
+              toast.error('Workflow has a cycle', {
+                description: 'Remove the circular connection before running.',
+              })
+              return
+            }
+            triggerExecution(workflowId).catch(() => {})
+          }}
+        >
+          {isTriggering ? (
+            <Loader2 className="size-3.5 animate-spin" />
+          ) : (
+            <Play className="size-3.5" />
+          )}
           Run
         </Button>
       </div>
