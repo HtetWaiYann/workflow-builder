@@ -5,6 +5,8 @@ import { useCanvasStore } from '@/stores/canvasStore'
 import { getNodeDefinition, ICON_MAP } from '@/lib/nodeRegistry'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { NodeConfigForm } from '@/components/canvas/NodeConfigForm'
+import { NodeDocsButton } from '@/components/canvas/NodeDocs'
 
 interface NodeLabelInputProps {
   initialLabel: string
@@ -42,6 +44,7 @@ export function ConfigPanel() {
   const nodes = useCanvasStore((s) => s.nodes)
   const selectNode = useCanvasStore((s) => s.selectNode)
   const updateNodeLabel = useCanvasStore((s) => s.updateNodeLabel)
+  const updateNodeConfig = useCanvasStore((s) => s.updateNodeConfig)
 
   const selectedNode = selectedNodeId
     ? nodes.find((n) => n.id === selectedNodeId)
@@ -53,9 +56,10 @@ export function ConfigPanel() {
   const def = selectedNode ? getNodeDefinition(nodeType) : null
   const IconComponent = def ? ICON_MAP[def.icon] : null
 
-  const configJson = selectedNode
-    ? JSON.stringify(selectedNode.data.config ?? {}, null, 2)
-    : '{}'
+  const nodeConfig = (selectedNode?.data.config ?? {}) as Record<
+    string,
+    unknown
+  >
 
   return (
     <div
@@ -68,12 +72,16 @@ export function ConfigPanel() {
           {def && IconComponent && (
             <IconComponent
               size={15}
-              style={{ color: def.color, flexShrink: 0 }}
+              style={{ color: def.color }}
+              className="shrink-0"
             />
           )}
           <span className="text-muted-foreground flex-1 truncate text-sm font-medium">
             {def?.label ?? ''}
           </span>
+          {selectedNode && (
+            <NodeDocsButton nodeType={nodeType} nodeLabel={def?.label ?? ''} />
+          )}
           <Button
             variant="ghost"
             size="sm"
@@ -105,23 +113,17 @@ export function ConfigPanel() {
             />
           </div>
 
-          {/* Placeholder */}
-          <div className="bg-muted/30 rounded border px-3 py-2.5">
-            <p className="text-muted-foreground text-xs">
-              Configuration for{' '}
-              <span className="font-medium">{def?.label}</span> coming soon.
-            </p>
-          </div>
-
-          {/* Config JSON */}
-          <div className="space-y-1.5">
-            <label className="text-muted-foreground text-xs font-medium">
-              Current config
-            </label>
-            <pre className="bg-muted/40 overflow-x-auto rounded border p-2.5 text-xs">
-              {configJson}
-            </pre>
-          </div>
+          {/* Node config form */}
+          {selectedNode && (
+            <NodeConfigForm
+              key={selectedNodeId ?? ''}
+              nodeType={nodeType}
+              config={nodeConfig}
+              onChange={(config) => {
+                if (selectedNodeId) updateNodeConfig(selectedNodeId, config)
+              }}
+            />
+          )}
         </div>
 
         {/* Footer */}

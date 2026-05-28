@@ -1,24 +1,47 @@
 import { Handle, Position } from '@xyflow/react'
 import type { NodeProps } from '@xyflow/react'
-import type { NodeType } from '@workflow-builder/shared'
+import type { NodeType, NodeRunStatus } from '@workflow-builder/shared'
 import { getNodeDefinition, ICON_MAP } from '@/lib/nodeRegistry'
+import { useExecutionStore } from '@/stores/executionStore'
+
+const STATUS_DOT: Record<NodeRunStatus, string> = {
+  PENDING: 'bg-muted-foreground/40',
+  RUNNING: 'bg-yellow-400 animate-pulse',
+  SUCCESS: 'bg-green-500',
+  ERROR: 'bg-red-500',
+  SKIPPED: 'bg-muted-foreground/25',
+}
+
+const STATUS_BORDER_COLOR: Record<NodeRunStatus, string | null> = {
+  PENDING: null,
+  RUNNING: '#facc1599',
+  SUCCESS: '#22c55e99',
+  ERROR: '#ef444499',
+  SKIPPED: null,
+}
 
 export function WorkflowNode(props: NodeProps) {
   const nodeType = (props.type as NodeType | undefined) ?? 'manual-trigger'
   const def = getNodeDefinition(nodeType)
   const label = (props.data.label as string | undefined) ?? def.label
   const IconComponent = ICON_MAP[def.icon]
+  const nodeRun = useExecutionStore((s) =>
+    s.currentExecution?.nodeRuns.find((r) => r.nodeId === props.id)
+  )
 
   const inputCount = def.inputs.length
   const outputCount = def.outputs.length
 
+  const statusBorderColor = nodeRun ? STATUS_BORDER_COLOR[nodeRun.status] : null
+  const activeBorderColor = props.selected ? def.color : statusBorderColor
+
   return (
     <div
       style={
-        props.selected
+        activeBorderColor
           ? {
-              border: `1.5px solid ${def.color}`,
-              boxShadow: `0 0 0 3px ${def.color}22`,
+              border: `1.5px solid ${activeBorderColor}`,
+              boxShadow: `0 0 0 3px ${activeBorderColor}22`,
             }
           : undefined
       }
@@ -52,6 +75,12 @@ export function WorkflowNode(props: NodeProps) {
         <span className="flex-1 truncate text-sm leading-tight font-medium">
           {label}
         </span>
+        {nodeRun && (
+          <span
+            className={`size-2 flex-shrink-0 rounded-full ${STATUS_DOT[nodeRun.status]}`}
+            title={nodeRun.status}
+          />
+        )}
       </div>
 
       {/* Divider */}

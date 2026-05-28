@@ -9,6 +9,13 @@ vi.mock('../db/client', () => ({
     executionNodeRun: {
       findFirst: vi.fn(),
       update: vi.fn(),
+      updateMany: vi.fn(),
+    },
+    workflow: {
+      findUnique: vi.fn(),
+    },
+    workspaceVariable: {
+      findMany: vi.fn(),
     },
   },
 }))
@@ -25,6 +32,12 @@ import { runWorkflow } from './runner'
 import { prisma } from '../db/client'
 import { getExecutor } from './registry'
 import type { WorkflowNode, WorkflowEdge } from '@workflow-builder/shared'
+
+// Suppress encryption errors in tests — workspace variables return empty map
+vi.mock('../services/encryptionService', () => ({
+  decrypt: vi.fn().mockReturnValue('decrypted-value'),
+  encrypt: vi.fn(),
+}))
 
 const makeNode = (id: string, type = 'mock'): WorkflowNode => ({
   id,
@@ -53,6 +66,11 @@ function setupPrismaDefaults() {
     id: 'nr-1',
   } as never)
   vi.mocked(prisma.executionNodeRun.update).mockResolvedValue({} as never)
+  vi.mocked(prisma.executionNodeRun.updateMany).mockResolvedValue({} as never)
+  vi.mocked(prisma.workflow.findUnique).mockResolvedValue({
+    workspaceId: 'ws-1',
+  } as never)
+  vi.mocked(prisma.workspaceVariable.findMany).mockResolvedValue([])
   vi.mocked(getExecutor).mockReturnValue(mockExecutor)
 }
 
@@ -196,5 +214,28 @@ describe('runWorkflow', () => {
 
     // Should not throw
     await expect(runWorkflow('exec-1', [], [], {})).resolves.toBeUndefined()
+  })
+
+  it('resolves $input placeholders in node config using the upstream node output', async () => {
+    const nodeA = makeNode('a')
+    const nodeB: WorkflowNode = {
+      ...makeNode('b'),
+      data: { config: { subject: 'Hello {{ $input.name }}' } },
+    }
+    const edges = [makeEdge('a', 'b')]
+
+    mockExecutor.execute
+      .mockResolvedValueOnce({ name: 'alice' })
+      .mockResolvedValueOnce({ sent: true })
+
+    await runWorkflow('exec-1', [nodeA, nodeB], edges, {})
+
+    // Node B executor must receive the resolved config, not the raw placeholder
+    expect(mockExecutor.execute).toHaveBeenNthCalledWith(
+      2,
+      { config: { subject: 'Hello alice' } },
+      { name: 'alice' },
+      expect.anything()
+    )
   })
 })

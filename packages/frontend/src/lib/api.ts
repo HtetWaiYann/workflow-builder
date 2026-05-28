@@ -8,6 +8,11 @@ import type {
   RenameWorkflowRequest,
   WorkflowNode,
   WorkflowEdge,
+  Execution,
+  ExecutionSummary,
+  WorkspaceVariable,
+  CreateWorkspaceVariableRequest,
+  UpdateWorkspaceVariableRequest,
 } from '@workflow-builder/shared'
 
 const BASE_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3001'
@@ -113,5 +118,41 @@ export const api = {
         method: 'PATCH',
         body: JSON.stringify({ name }),
       }),
+  },
+
+  executions: {
+    trigger: (workflowId: string, inputData?: Record<string, unknown>) =>
+      request<{ execution: ExecutionSummary }>(
+        `/workflows/${workflowId}/executions`,
+        { method: 'POST', body: JSON.stringify({ inputData }) }
+      ),
+
+    list: (workflowId: string, limit = 20) =>
+      request<{ executions: ExecutionSummary[] }>(
+        `/workflows/${workflowId}/executions?limit=${limit}`
+      ),
+
+    get: (executionId: string) =>
+      request<{ execution: Execution }>(`/executions/${executionId}`),
+  },
+
+  variables: {
+    list: () =>
+      request<{ variables: WorkspaceVariable[] }>('/workspace/variables'),
+
+    create: (data: CreateWorkspaceVariableRequest) =>
+      request<{ variable: WorkspaceVariable }>('/workspace/variables', {
+        method: 'POST',
+        body: JSON.stringify(data),
+      }),
+
+    update: (id: string, data: UpdateWorkspaceVariableRequest) =>
+      request<{ variable: WorkspaceVariable }>(`/workspace/variables/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify(data),
+      }),
+
+    delete: (id: string) =>
+      request<void>(`/workspace/variables/${id}`, { method: 'DELETE' }),
   },
 }

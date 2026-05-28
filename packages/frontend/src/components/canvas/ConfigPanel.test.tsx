@@ -30,9 +30,6 @@ beforeEach(() => {
 describe('ConfigPanel', () => {
   it('has zero width when no node is selected', () => {
     render(<ConfigPanel />)
-    const panel = screen
-      .getByRole('textbox', { hidden: true })
-      .closest('div[style]')?.parentElement
     const outer = document.querySelector<HTMLElement>('[style*="width: 0"]')
     expect(outer).toBeTruthy()
   })

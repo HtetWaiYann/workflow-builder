@@ -179,6 +179,92 @@
   background-color: oklch(0.09 0.004 264);
 }
 
+/* ─── Radix UI / shadcn animation utilities ──────────────────────────────────
+   tailwindcss-animate is not bundled with Tailwind v4. Define the keyframes
+   and utility classes used by Dialog, Select, and other Radix primitives so
+   that open/close transitions actually play.
+   Radix waits for animationend on data-[state=closed] before unmounting, so
+   the exit animation is visible as long as a named CSS animation is attached.
+   ──────────────────────────────────────────────────────────────────────────── */
+
+@keyframes tw-enter {
+  from {
+    opacity: var(--tw-enter-opacity, 1);
+    transform: translate(
+        var(--tw-enter-translate-x, 0),
+        var(--tw-enter-translate-y, 0)
+      )
+      scale(var(--tw-enter-scale, 1));
+  }
+}
+
+@keyframes tw-exit {
+  to {
+    opacity: var(--tw-exit-opacity, 1);
+    transform: translate(
+        var(--tw-exit-translate-x, 0),
+        var(--tw-exit-translate-y, 0)
+      )
+      scale(var(--tw-exit-scale, 1));
+  }
+}
+
+@layer utilities {
+  /* Base animation classes */
+  .animate-in {
+    animation-name: tw-enter;
+    animation-duration: var(--tw-duration, 150ms);
+    animation-fill-mode: both;
+  }
+
+  .animate-out {
+    animation-name: tw-exit;
+    animation-duration: var(--tw-duration, 150ms);
+    animation-fill-mode: both;
+  }
+
+  /* Fade */
+  .fade-in-0 {
+    --tw-enter-opacity: 0;
+  }
+  .fade-out-0 {
+    --tw-exit-opacity: 0;
+  }
+
+  /* Zoom */
+  .zoom-in-95 {
+    --tw-enter-scale: 0.95;
+  }
+  .zoom-out-95 {
+    --tw-exit-scale: 0.95;
+  }
+
+  /* Slide — used by Select and Popover dropdowns */
+  .slide-in-from-top-2 {
+    --tw-enter-translate-y: -0.5rem;
+  }
+  .slide-in-from-bottom-2 {
+    --tw-enter-translate-y: 0.5rem;
+  }
+  .slide-in-from-left-2 {
+    --tw-enter-translate-x: -0.5rem;
+  }
+  .slide-in-from-right-2 {
+    --tw-enter-translate-x: 0.5rem;
+  }
+
+  /* Duration — augments Tailwind's transition-duration to also drive animation-duration */
+  .duration-150 {
+    --tw-duration: 150ms;
+  }
+  .duration-200 {
+    --tw-duration: 200ms;
+  }
+  .duration-300 {
+    --tw-duration: 300ms;
+  }
+}
+
 /* Sonner toast semantic colors — light */
 :root {
   --toast-success-bg: oklch(0.97 0.03 152);

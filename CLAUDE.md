@@ -62,6 +62,7 @@ The root `tsconfig.json` is a minimal base (target, strict, esModuleInterop). Ba
 - Never duplicate types across packages — shared types always live in packages/shared/src
 - Always use named exports — no default exports except in React component files
 - Never use barrel re-exports that cause circular dependencies
+- For the tests, please write the test description for every tests in both frontend and backend
 
 ### Function Style & JSDoc
 
@@ -138,6 +139,7 @@ src/
 - Never trust req.body without validation
 - All async route handlers must be wrapped in try/catch — no unhandled promise rejections
 - Always return consistent JSON error responses: { error: string, code: string }
+- For the routes, please write a comment (description) of what the route does. for example, "auth/me" is about getting the current logged in users.
 
 ### Database
 

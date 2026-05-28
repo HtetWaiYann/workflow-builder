@@ -5,7 +5,11 @@ import tailwindcss from '@tailwindcss/vite'
 import path from 'node:path'
 
 export default defineConfig({
-  plugins: [tailwindcss(), react(), babel({ presets: [reactCompilerPreset()] })],
+  plugins: [
+    tailwindcss(),
+    react(),
+    babel({ presets: [reactCompilerPreset()] }),
+  ],
   resolve: {
     alias: {
       '@': path.resolve(import.meta.dirname, './src'),
@@ -13,5 +17,10 @@ export default defineConfig({
   },
   optimizeDeps: {
     include: ['@workflow-builder/shared'],
+  },
+  server: {
+    // Bind to 0.0.0.0 so the Vite dev server is reachable from the host
+    // when running inside a Docker container
+    host: true,
   },
 })
