@@ -27,6 +27,8 @@ RUN npm run build --workspace=packages/backend
 # ── Stage 2: runner ───────────────────────────────────────────────────────────
 FROM node:24-alpine AS runner
 
+ENV NODE_ENV=production
+
 WORKDIR /app
 
 # Copy workspace manifests + lockfile for a clean install.

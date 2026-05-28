@@ -1,0 +1,65 @@
+services:
+  # ── Backend API ────────────────────────────────────────────────────────────
+  - type: web
+    name: workflow-builder-api
+    runtime: docker
+    dockerfilePath: ./packages/backend/Dockerfile
+    dockerContext: .
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: workflow-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: workflow-redis
+          property: connectionString
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_EXPIRES_IN
+        value: 7d
+      # Set in the Render dashboard after the frontend service is created:
+      #   CORS_ORIGIN=https://workflow-builder.onrender.com
+      - key: CORS_ORIGIN
+        sync: false
+      # Generate with: node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+      # Set in the Render dashboard — never commit the real value.
+      - key: ENCRYPTION_KEY
+        sync: false
+      - key: MAX_DELAY_MS
+        value: '300000'
+
+  # ── Frontend Static Site ────────────────────────────────────────────────────
+  - type: web
+    name: workflow-builder
+    runtime: static
+    buildCommand: npm ci && npm run build:shared && npm run build --workspace=packages/frontend
+    staticPublishPath: ./packages/frontend/dist
+    # SPA fallback — serve index.html for all non-asset routes so React Router works
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    envVars:
+      # Baked into the Vite bundle at build time.
+      # Set in the Render dashboard after the backend service is created:
+      #   VITE_API_URL=https://workflow-builder-api.onrender.com
+      - key: VITE_API_URL
+        sync: false
+
+  # ── Redis ──────────────────────────────────────────────────────────────────
+  - type: redis
+    name: workflow-redis
+    plan: free
+    maxmemoryPolicy: noeviction
+    ipAllowList: [] # private — only reachable from Render services in the same account
+
+# ── PostgreSQL ──────────────────────────────────────────────────────────────
+databases:
+  - name: workflow-db
+    databaseName: workflow_builder
+    plan: free
