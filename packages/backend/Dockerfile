@@ -11,6 +11,9 @@ COPY packages/frontend/package.json ./packages/frontend/
 
 RUN npm ci
 
+# Root tsconfig is required because packages/shared/tsconfig.json extends it
+COPY tsconfig.json ./
+
 # Copy only the source needed for this build
 COPY packages/shared/ ./packages/shared/
 COPY packages/backend/ ./packages/backend/
