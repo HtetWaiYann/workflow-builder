@@ -6,6 +6,7 @@ services:
     dockerfilePath: ./packages/backend/Dockerfile
     dockerContext: .
     plan: free
+    region: singapore
     healthCheckPath: /health
     envVars:
       - key: NODE_ENV
@@ -56,6 +57,7 @@ services:
   - type: redis
     name: workflow-redis
     plan: free
+    region: singapore
     maxmemoryPolicy: noeviction
     ipAllowList: [] # private — only reachable from Render services in the same account
 
@@ -64,3 +66,4 @@ databases:
   - name: workflow-db
     databaseName: workflow_builder
     plan: free
+    region: singapore
