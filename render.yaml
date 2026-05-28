@@ -5,6 +5,7 @@ services:
     runtime: docker
     dockerfilePath: ./packages/backend/Dockerfile
     dockerContext: .
+    plan: free
     healthCheckPath: /health
     envVars:
       - key: NODE_ENV
