@@ -1,0 +1,55 @@
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Build output
+dist/
+**/dist/
+packages/shared/dist/
+
+# Prisma generated client
+packages/backend/src/generated/
+
+# Environment files
+.env
+**/.env
+.env.*
+**/.env.*
+!**/.env.example
+
+# Logs
+*.log
+**/*.log
+logs/
+
+# Git
+.git/
+.gitignore
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Test coverage
+coverage/
+**/coverage/
+
+# TypeDoc output
+docs/
+
+# Notes
+.notes/
+
+# Cursor
+.cursor/
+
+# Claude
+CLAUDE.md
+CLAUDE.local.md
+.claude/
