@@ -215,4 +215,27 @@ describe('runWorkflow', () => {
     // Should not throw
     await expect(runWorkflow('exec-1', [], [], {})).resolves.toBeUndefined()
   })
+
+  it('resolves $input placeholders in node config using the upstream node output', async () => {
+    const nodeA = makeNode('a')
+    const nodeB: WorkflowNode = {
+      ...makeNode('b'),
+      data: { config: { subject: 'Hello {{ $input.name }}' } },
+    }
+    const edges = [makeEdge('a', 'b')]
+
+    mockExecutor.execute
+      .mockResolvedValueOnce({ name: 'alice' })
+      .mockResolvedValueOnce({ sent: true })
+
+    await runWorkflow('exec-1', [nodeA, nodeB], edges, {})
+
+    // Node B executor must receive the resolved config, not the raw placeholder
+    expect(mockExecutor.execute).toHaveBeenNthCalledWith(
+      2,
+      { config: { subject: 'Hello alice' } },
+      { name: 'alice' },
+      expect.anything()
+    )
+  })
 })

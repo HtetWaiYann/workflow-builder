@@ -3,7 +3,12 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { useCanvasStore } from '@/stores/canvasStore'
+import { useExecutionStore } from '@/stores/executionStore'
 import { CanvasToolbar } from '@/components/canvas/CanvasToolbar'
+
+vi.mock('sonner', () => ({
+  toast: { error: vi.fn(), warning: vi.fn() },
+}))
 
 const mockNavigate = vi.hoisted(() => vi.fn())
 
@@ -24,6 +29,7 @@ vi.mock('@/lib/api', () => ({
 }))
 
 import { api } from '@/lib/api'
+import { toast } from 'sonner'
 
 function renderToolbar() {
   return render(
@@ -33,9 +39,14 @@ function renderToolbar() {
   )
 }
 
+const mockTriggerExecution = vi.fn().mockResolvedValue(undefined)
+
 beforeEach(() => {
   vi.clearAllMocks()
   useCanvasStore.getState().reset()
+  useExecutionStore.setState({
+    triggerExecution: mockTriggerExecution,
+  } as never)
   useCanvasStore.setState({
     workflowId: 'wf-1',
     workflowName: 'My Workflow',
@@ -150,5 +161,86 @@ describe('CanvasToolbar', () => {
   it('Run button is enabled when a workflow is loaded', () => {
     renderToolbar()
     expect(screen.getByRole('button', { name: /run/i })).not.toBeDisabled()
+  })
+})
+
+// Undo and redo buttons mirror canUndo/canRedo from the store and call the matching action.
+describe('undo/redo buttons', () => {
+  it('Undo button is disabled when canUndo is false', () => {
+    useCanvasStore.setState({ canUndo: false })
+    renderToolbar()
+    expect(screen.getByRole('button', { name: /undo/i })).toBeDisabled()
+  })
+
+  it('Undo button is enabled when canUndo is true', () => {
+    useCanvasStore.setState({ canUndo: true })
+    renderToolbar()
+    expect(screen.getByRole('button', { name: /undo/i })).not.toBeDisabled()
+  })
+
+  it('clicking Undo calls undo on the store', async () => {
+    const mockUndo = vi.fn()
+    useCanvasStore.setState({ canUndo: true, undo: mockUndo } as never)
+    renderToolbar()
+    await userEvent.click(screen.getByRole('button', { name: /undo/i }))
+    expect(mockUndo).toHaveBeenCalled()
+  })
+
+  it('Redo button is disabled when canRedo is false', () => {
+    useCanvasStore.setState({ canRedo: false })
+    renderToolbar()
+    expect(screen.getByRole('button', { name: /redo/i })).toBeDisabled()
+  })
+
+  it('Redo button is enabled when canRedo is true', () => {
+    useCanvasStore.setState({ canRedo: true })
+    renderToolbar()
+    expect(screen.getByRole('button', { name: /redo/i })).not.toBeDisabled()
+  })
+
+  it('clicking Redo calls redo on the store', async () => {
+    const mockRedo = vi.fn()
+    useCanvasStore.setState({ canRedo: true, redo: mockRedo } as never)
+    renderToolbar()
+    await userEvent.click(screen.getByRole('button', { name: /redo/i }))
+    expect(mockRedo).toHaveBeenCalled()
+  })
+})
+
+// Run button checks for a cycle before firing the execution. If a cycle is detected it
+// shows a toast.error and skips triggerExecution entirely.
+describe('cycle detection on Run', () => {
+  const cycleNodes = [
+    { id: 'a', type: 'manual-trigger', position: { x: 0, y: 0 }, data: {} },
+    { id: 'b', type: 'set-fields', position: { x: 100, y: 0 }, data: {} },
+  ]
+  const cycleEdges = [
+    { id: 'e1', source: 'a', target: 'b' },
+    { id: 'e2', source: 'b', target: 'a' },
+  ]
+
+  it('shows toast.error and skips triggerExecution when the graph has a cycle', async () => {
+    useCanvasStore.setState({
+      nodes: cycleNodes as never,
+      edges: cycleEdges as never,
+    })
+    renderToolbar()
+    await userEvent.click(screen.getByRole('button', { name: /run/i }))
+    expect(vi.mocked(toast.error)).toHaveBeenCalledWith(
+      'Workflow has a cycle',
+      expect.any(Object)
+    )
+    expect(mockTriggerExecution).not.toHaveBeenCalled()
+  })
+
+  it('calls triggerExecution when the graph has no cycle', async () => {
+    useCanvasStore.setState({
+      nodes: cycleNodes as never,
+      edges: [{ id: 'e1', source: 'a', target: 'b' }] as never,
+    })
+    renderToolbar()
+    await userEvent.click(screen.getByRole('button', { name: /run/i }))
+    expect(vi.mocked(toast.error)).not.toHaveBeenCalled()
+    expect(mockTriggerExecution).toHaveBeenCalledWith('wf-1')
   })
 })
