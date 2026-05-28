@@ -24,7 +24,6 @@ vi.mock('@/components/TopBar', () => ({
 import { api } from '@/lib/api'
 import { toast } from 'sonner'
 import { VariablesPage } from '@/pages/VariablesPage'
-import * as React from 'react'
 
 const mockList = vi.mocked(api.variables.list)
 const mockCreate = vi.mocked(api.variables.create)
