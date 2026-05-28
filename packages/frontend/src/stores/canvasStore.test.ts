@@ -13,11 +13,16 @@ vi.mock('@/lib/api', () => ({
   },
 }))
 
+vi.mock('sonner', () => ({
+  toast: { warning: vi.fn(), error: vi.fn() },
+}))
+
 vi.mock('@paralleldrive/cuid2', () => ({
   createId: () => 'generated-id',
 }))
 
 import { api } from '@/lib/api'
+import { toast } from 'sonner'
 
 const mockGet = vi.mocked(api.workflows.get)
 const mockSaveCanvas = vi.mocked(api.workflows.saveCanvas)
@@ -373,5 +378,189 @@ describe('markDirty', () => {
     useCanvasStore.getState().markDirty()
     await vi.advanceTimersByTimeAsync(2000)
     expect(mockSaveCanvas).toHaveBeenCalledTimes(1)
+  })
+})
+
+// Saves a snapshot of nodes + edges onto a module-level undo stack before each
+// destructive canvas change. canUndo and canRedo are reactive flags for toolbar buttons.
+describe('pushHistory / undo / redo', () => {
+  const nodeA = {
+    id: 'a',
+    type: 'manual-trigger',
+    position: { x: 0, y: 0 },
+    data: {},
+  }
+  const nodeB = {
+    id: 'b',
+    type: 'set-fields',
+    position: { x: 100, y: 0 },
+    data: {},
+  }
+
+  it('pushHistory sets canUndo=true and canRedo=false', () => {
+    useCanvasStore.getState().pushHistory()
+    const s = useCanvasStore.getState()
+    expect(s.canUndo).toBe(true)
+    expect(s.canRedo).toBe(false)
+  })
+
+  it('undo restores the previous nodes and edges', () => {
+    useCanvasStore.setState({ nodes: [nodeA] as never, edges: [] })
+    useCanvasStore.getState().pushHistory()
+    useCanvasStore.setState({ nodes: [nodeA, nodeB] as never, edges: [] })
+
+    useCanvasStore.getState().undo()
+
+    expect(useCanvasStore.getState().nodes).toHaveLength(1)
+    expect(useCanvasStore.getState().nodes[0].id).toBe('a')
+  })
+
+  it('undo sets canRedo=true so the action can be re-applied', () => {
+    useCanvasStore.getState().pushHistory()
+    useCanvasStore.getState().undo()
+    expect(useCanvasStore.getState().canRedo).toBe(true)
+  })
+
+  it('undo sets canUndo=false when the stack is exhausted', () => {
+    useCanvasStore.getState().pushHistory()
+    useCanvasStore.getState().undo()
+    expect(useCanvasStore.getState().canUndo).toBe(false)
+  })
+
+  it('undo is a no-op when there is nothing to undo', () => {
+    useCanvasStore.setState({ nodes: [nodeA] as never })
+    useCanvasStore.getState().undo()
+    expect(useCanvasStore.getState().nodes).toHaveLength(1)
+    expect(useCanvasStore.getState().canUndo).toBe(false)
+  })
+
+  it('undo marks the canvas dirty', () => {
+    useCanvasStore.getState().pushHistory()
+    useCanvasStore.setState({ isDirty: false })
+    useCanvasStore.getState().undo()
+    expect(useCanvasStore.getState().isDirty).toBe(true)
+  })
+
+  it('redo re-applies the undone nodes and edges', () => {
+    useCanvasStore.setState({ nodes: [nodeA] as never, edges: [] })
+    useCanvasStore.getState().pushHistory()
+    useCanvasStore.setState({ nodes: [nodeA, nodeB] as never, edges: [] })
+
+    useCanvasStore.getState().undo()
+    expect(useCanvasStore.getState().nodes).toHaveLength(1)
+
+    useCanvasStore.getState().redo()
+    expect(useCanvasStore.getState().nodes).toHaveLength(2)
+  })
+
+  it('redo sets canRedo=false when the future stack is exhausted', () => {
+    useCanvasStore.getState().pushHistory()
+    useCanvasStore.getState().undo()
+    useCanvasStore.getState().redo()
+    expect(useCanvasStore.getState().canRedo).toBe(false)
+  })
+
+  it('redo is a no-op when there is nothing to redo', () => {
+    useCanvasStore.setState({ nodes: [nodeA] as never })
+    useCanvasStore.getState().redo()
+    expect(useCanvasStore.getState().nodes).toHaveLength(1)
+    expect(useCanvasStore.getState().canRedo).toBe(false)
+  })
+
+  it('redo marks the canvas dirty', () => {
+    useCanvasStore.getState().pushHistory()
+    useCanvasStore.getState().undo()
+    useCanvasStore.setState({ isDirty: false })
+    useCanvasStore.getState().redo()
+    expect(useCanvasStore.getState().isDirty).toBe(true)
+  })
+
+  it('pushHistory clears the redo stack', () => {
+    useCanvasStore.getState().pushHistory()
+    useCanvasStore.getState().undo()
+    expect(useCanvasStore.getState().canRedo).toBe(true)
+
+    useCanvasStore.getState().pushHistory()
+    expect(useCanvasStore.getState().canRedo).toBe(false)
+  })
+
+  it('addNode pushes history so the addition is undoable', () => {
+    useCanvasStore.getState().addNode('manual-trigger', { x: 0, y: 0 })
+    expect(useCanvasStore.getState().canUndo).toBe(true)
+
+    useCanvasStore.getState().undo()
+    expect(useCanvasStore.getState().nodes).toHaveLength(0)
+  })
+
+  it('reset clears history and resets canUndo and canRedo to false', () => {
+    useCanvasStore.getState().pushHistory()
+    useCanvasStore.getState().reset()
+    const s = useCanvasStore.getState()
+    expect(s.canUndo).toBe(false)
+    expect(s.canRedo).toBe(false)
+  })
+})
+
+// When an ACTIVE workflow is saved and the graph contains a cycle, a warning toast is
+// shown so the user knows the scheduled/webhook run will fail immediately.
+describe('saveCanvas — cycle warning for active workflows', () => {
+  it('shows a toast.warning after saving an ACTIVE workflow that has a cycle', async () => {
+    mockSaveCanvas.mockResolvedValue({ workflow: fakeWorkflow } as never)
+    useCanvasStore.setState({
+      workflowId: 'wf-1',
+      workflowStatus: 'ACTIVE',
+      nodes: [
+        { id: 'a', type: 'manual-trigger', position: { x: 0, y: 0 }, data: {} },
+        { id: 'b', type: 'set-fields', position: { x: 100, y: 0 }, data: {} },
+      ] as never,
+      edges: [
+        { id: 'e1', source: 'a', target: 'b' },
+        { id: 'e2', source: 'b', target: 'a' },
+      ] as never,
+    })
+
+    await useCanvasStore.getState().saveCanvas()
+
+    expect(vi.mocked(toast.warning)).toHaveBeenCalledWith(
+      'Active workflow has a cycle',
+      expect.objectContaining({ id: 'cycle-warning' })
+    )
+  })
+
+  it('does not show a toast when saving a DRAFT workflow with a cycle', async () => {
+    mockSaveCanvas.mockResolvedValue({ workflow: fakeWorkflow } as never)
+    useCanvasStore.setState({
+      workflowId: 'wf-1',
+      workflowStatus: 'DRAFT',
+      nodes: [
+        { id: 'a', type: 'manual-trigger', position: { x: 0, y: 0 }, data: {} },
+        { id: 'b', type: 'set-fields', position: { x: 100, y: 0 }, data: {} },
+      ] as never,
+      edges: [
+        { id: 'e1', source: 'a', target: 'b' },
+        { id: 'e2', source: 'b', target: 'a' },
+      ] as never,
+    })
+
+    await useCanvasStore.getState().saveCanvas()
+
+    expect(vi.mocked(toast.warning)).not.toHaveBeenCalled()
+  })
+
+  it('does not show a toast when saving an ACTIVE workflow without a cycle', async () => {
+    mockSaveCanvas.mockResolvedValue({ workflow: fakeWorkflow } as never)
+    useCanvasStore.setState({
+      workflowId: 'wf-1',
+      workflowStatus: 'ACTIVE',
+      nodes: [
+        { id: 'a', type: 'manual-trigger', position: { x: 0, y: 0 }, data: {} },
+        { id: 'b', type: 'set-fields', position: { x: 100, y: 0 }, data: {} },
+      ] as never,
+      edges: [{ id: 'e1', source: 'a', target: 'b' }] as never,
+    })
+
+    await useCanvasStore.getState().saveCanvas()
+
+    expect(vi.mocked(toast.warning)).not.toHaveBeenCalled()
   })
 })
