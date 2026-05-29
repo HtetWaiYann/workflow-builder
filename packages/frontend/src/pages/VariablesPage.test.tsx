@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { MemoryRouter } from 'react-router-dom'
 
 vi.mock('@/lib/api', () => ({
   api: {
@@ -39,7 +40,11 @@ const fakeVar = {
 }
 
 function renderPage() {
-  return render(<VariablesPage />)
+  return render(
+    <MemoryRouter>
+      <VariablesPage />
+    </MemoryRouter>
+  )
 }
 
 beforeEach(() => {

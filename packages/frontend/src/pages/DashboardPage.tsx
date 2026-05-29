@@ -49,14 +49,16 @@ export function DashboardPage() {
 
   async function handleCreate(name: string) {
     const { workflow } = await api.workflows.create({ name })
-    addWorkflow(workflow)
+    const { nodes: _n, edges: _e, ...summary } = workflow
+    addWorkflow({ ...summary, runCount: 0 })
     navigate(`/workflows/${workflow.id}`)
   }
 
   async function handleDuplicate(id: string) {
     try {
       const { workflow } = await api.workflows.duplicate(id)
-      addWorkflow(workflow)
+      const { nodes: _n, edges: _e, ...summary } = workflow
+      addWorkflow({ ...summary, runCount: 0 })
       toast.success('Workflow duplicated')
     } catch (err) {
       toast.error(

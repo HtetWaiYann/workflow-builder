@@ -135,9 +135,10 @@ export function WorkflowCard({
         {/* Divider */}
         <span className="bg-border h-3 w-px" />
 
-        {/* Run count placeholder */}
+        {/* Run count */}
         <span className="flex items-center gap-1">
-          <Activity className="size-3.5" />— runs
+          <Activity className="size-3.5" />
+          {workflow.runCount} {workflow.runCount === 1 ? 'run' : 'runs'}
         </span>
       </div>
     </div>

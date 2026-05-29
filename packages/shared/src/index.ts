@@ -109,6 +109,8 @@ export type Workflow = z.infer<typeof WorkflowSchema>
 export const WorkflowSummarySchema = WorkflowSchema.omit({
   nodes: true,
   edges: true,
+}).extend({
+  runCount: z.number(),
 })
 export type WorkflowSummary = z.infer<typeof WorkflowSummarySchema>
 
