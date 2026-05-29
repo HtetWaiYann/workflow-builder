@@ -1,32 +1,7 @@
 import nodemailer from 'nodemailer'
-import type { Transporter } from 'nodemailer'
 import type { NodeExecutor, ExecutionContext } from '@workflow-builder/shared'
 import { SendEmailConfigSchema } from '@workflow-builder/shared'
 import { logger } from '../../lib/logger'
-
-let _transporter: Transporter | null = null
-
-/**
- * Returns a cached nodemailer transporter built from the config values
- * resolved from the node's config (which may reference workspace variables).
- * A new transporter is created whenever host/user changes.
- */
-function getTransporter(
-  host: string,
-  port: number,
-  user: string,
-  pass: string
-): Transporter {
-  if (!_transporter) {
-    _transporter = nodemailer.createTransport({
-      host,
-      port,
-      secure: port === 465,
-      auth: { user, pass },
-    })
-  }
-  return _transporter
-}
 
 export class SendEmailExecutor implements NodeExecutor {
   readonly type = 'send-email' as const
@@ -54,18 +29,18 @@ export class SendEmailExecutor implements NodeExecutor {
       smtpFrom,
     } = result.data
 
-    // Reset cached transporter when credentials change between executions
-    _transporter = null
-    const transporter = getTransporter(smtpHost, smtpPort, smtpUser, smtpPass)
+    // Transporter created per-execution — no module-level state — so concurrent
+    // executions with different SMTP configs can never share a transporter.
+    const transporter = nodemailer.createTransport({
+      host: smtpHost,
+      port: smtpPort,
+      secure: smtpPort === 465,
+      auth: { user: smtpUser, pass: smtpPass },
+    })
 
     logger.debug({ to, subject }, 'Sending email')
 
-    await transporter.sendMail({
-      from: smtpFrom,
-      to,
-      subject,
-      text: body,
-    })
+    await transporter.sendMail({ from: smtpFrom, to, subject, text: body })
 
     return { ...inputData, emailSent: true, to }
   }

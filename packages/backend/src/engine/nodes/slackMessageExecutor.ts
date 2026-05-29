@@ -1,6 +1,7 @@
 import type { NodeExecutor, ExecutionContext } from '@workflow-builder/shared'
 import { SlackMessageConfigSchema } from '@workflow-builder/shared'
 import { logger } from '../../lib/logger'
+import { assertSafeUrl } from '../../lib/ssrfGuard'
 
 export class SlackMessageExecutor implements NodeExecutor {
   readonly type = 'slack-message' as const
@@ -18,6 +19,8 @@ export class SlackMessageExecutor implements NodeExecutor {
     }
 
     const { webhookUrl, message } = result.data
+
+    await assertSafeUrl(webhookUrl)
 
     logger.debug({ webhookUrl }, 'Posting Slack message')
 

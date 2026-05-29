@@ -1,4 +1,4 @@
-import { runInNewContext } from 'node:vm'
+import ivm from 'isolated-vm'
 import type { NodeExecutor, ExecutionContext } from '@workflow-builder/shared'
 import { FilterArrayConfigSchema } from '@workflow-builder/shared'
 import { logger } from '../../lib/logger'
@@ -20,29 +20,37 @@ export class FilterArrayExecutor implements NodeExecutor {
 
     const { expression } = result.data
 
-    // Accept items from 'items' or 'data' key, or an empty array as fallback
     const rawItems = Array.isArray(inputData['items'])
       ? inputData['items']
       : Array.isArray(inputData['data'])
         ? inputData['data']
         : []
 
-    const filtered = rawItems.filter((item) => {
-      try {
-        const sandbox: Record<string, unknown> = { item, result: false }
-        runInNewContext(`result = !!(${expression})`, sandbox, {
-          timeout: 1000,
-        })
-        return Boolean(sandbox['result'])
-      } catch (err) {
-        logger.warn(
-          { expression, err },
-          'filter-array expression threw — item excluded'
-        )
-        return false
-      }
-    })
+    // One isolate per node execution; one compiled script reused per item.
+    // Each item is copied into the isolate's global before running the expression.
+    const isolate = new ivm.Isolate({ memoryLimit: 32 })
+    try {
+      const context = await isolate.createContext()
+      const jail = context.global
+      const script = await isolate.compileScript(`!!(${expression})`)
 
-    return { ...inputData, items: filtered }
+      const filtered: unknown[] = []
+      for (const item of rawItems) {
+        try {
+          await jail.set('item', new ivm.ExternalCopy(item).copyInto())
+          const keep = await script.run(context, { timeout: 1000 })
+          if (keep) filtered.push(item)
+        } catch (err) {
+          logger.warn(
+            { expression, err },
+            'filter-array expression threw — item excluded'
+          )
+        }
+      }
+
+      return { ...inputData, items: filtered }
+    } finally {
+      isolate.dispose()
+    }
   }
 }

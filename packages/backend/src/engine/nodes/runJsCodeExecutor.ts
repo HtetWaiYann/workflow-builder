@@ -1,10 +1,6 @@
-import { runInNewContext } from 'node:vm'
+import ivm from 'isolated-vm'
 import type { NodeExecutor, ExecutionContext } from '@workflow-builder/shared'
 import { RunJsCodeConfigSchema } from '@workflow-builder/shared'
-
-// node:vm isolates variable scope but is NOT a full security sandbox.
-// It prevents accidental require() calls and global pollution, not malicious escapes.
-// Suitable for an internal tool with authenticated users only.
 
 export class RunJsCodeExecutor implements NodeExecutor {
   readonly type = 'run-js-code' as const
@@ -22,31 +18,48 @@ export class RunJsCodeExecutor implements NodeExecutor {
     }
 
     const { code } = result.data
-    const sandbox: Record<string, unknown> = {
-      $input: inputData,
-      result: undefined,
-    }
 
+    // Each execution gets its own V8 isolate — a true security boundary with
+    // a separate heap, no access to Node.js globals or require().
+    const isolate = new ivm.Isolate({ memoryLimit: 128 })
     try {
-      runInNewContext(`result = (function() { ${code} })()`, sandbox, {
-        timeout: 5000,
-      })
-    } catch (err) {
-      const message = err instanceof Error ? err.message : String(err)
-      throw new Error(`Code execution failed: ${message}`)
-    }
+      const context = await isolate.createContext()
+      const jail = context.global
 
-    const output = sandbox['result']
-    if (
-      output === null ||
-      typeof output !== 'object' ||
-      Array.isArray(output)
-    ) {
-      throw new Error(
-        'Code must return a plain object (e.g. return { key: value })'
-      )
-    }
+      // Copy input data into the isolate (JSON-serializable values only)
+      await jail.set('$input', new ivm.ExternalCopy(inputData).copyInto())
 
-    return output as Record<string, unknown>
+      // Validate and serialize the result inside the isolate so no object
+      // references cross the boundary — only a JSON string comes back.
+      const wrappedCode = `
+        (function() {
+          const __res__ = (function() { ${code} })();
+          if (__res__ === null || typeof __res__ !== 'object' || Array.isArray(__res__)) {
+            throw new Error('Code must return a plain object (e.g. return { key: value })');
+          }
+          return JSON.stringify(__res__);
+        })()
+      `
+
+      const script = await isolate.compileScript(wrappedCode)
+
+      let resultJson: unknown
+      try {
+        resultJson = await script.run(context, { timeout: 5000 })
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err)
+        throw new Error(`Code execution failed: ${message}`)
+      }
+
+      if (typeof resultJson !== 'string') {
+        throw new Error(
+          'Code must return a plain object (e.g. return { key: value })'
+        )
+      }
+
+      return JSON.parse(resultJson) as Record<string, unknown>
+    } finally {
+      isolate.dispose()
+    }
   }
 }

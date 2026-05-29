@@ -2,6 +2,8 @@ import 'dotenv/config'
 import express from 'express'
 import cors from 'cors'
 import cookieParser from 'cookie-parser'
+import helmet from 'helmet'
+import { rateLimit } from 'express-rate-limit'
 import { logger } from './lib/logger'
 import { checkDbConnection } from './db/client'
 import authRouter from './routes/auth'
@@ -15,25 +17,61 @@ const app = express()
 const PORT = process.env.PORT || 3001
 const CORS_ORIGIN = process.env.CORS_ORIGIN
 
+// Trust the nginx reverse proxy so req.ip reflects the real client IP,
+// which express-rate-limit uses for per-IP bucketing.
+app.set('trust proxy', 1)
+
+app.use(helmet())
 app.use(cors({ origin: CORS_ORIGIN, credentials: true }))
 app.use(express.json())
 app.use(cookieParser())
+
+// ── Rate limiters ─────────────────────────────────────────────────────────────
+
+const authLimiter = rateLimit({
+  windowMs: 15 * 60_000,
+  max: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many requests', code: 'RATE_LIMITED' },
+})
+
+const webhookLimiter = rateLimit({
+  windowMs: 60_000,
+  max: 200,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many requests', code: 'RATE_LIMITED' },
+})
+
+const apiLimiter = rateLimit({
+  windowMs: 60_000,
+  max: 500,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many requests', code: 'RATE_LIMITED' },
+})
 
 app.get('/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() })
 })
 
 // Public — no auth middleware
-app.use('/webhooks', webhooksRouter)
+app.use('/webhooks', webhookLimiter, webhooksRouter)
 
-app.use('/auth', authRouter)
-app.use('/workflows', workflowRouter)
-app.use('/executions', executionDetailRouter)
-app.use('/workspace/variables', variablesRouter)
+app.use('/auth', authLimiter, authRouter)
+app.use('/workflows', apiLimiter, workflowRouter)
+app.use('/executions', apiLimiter, executionDetailRouter)
+app.use('/workspace/variables', apiLimiter, variablesRouter)
 
 /** Validates required env vars, opens the DB connection, then starts the HTTP server. */
 async function start() {
-  const requiredEnvVars = ['DATABASE_URL', 'JWT_SECRET', 'CORS_ORIGIN']
+  const requiredEnvVars = [
+    'DATABASE_URL',
+    'JWT_SECRET',
+    'CORS_ORIGIN',
+    'ENCRYPTION_KEY',
+  ]
   const missing = requiredEnvVars.filter((key) => !process.env[key])
   if (missing.length > 0) {
     logger.fatal({ missing }, 'Missing required environment variables')

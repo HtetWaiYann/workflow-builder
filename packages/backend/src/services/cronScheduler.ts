@@ -5,6 +5,23 @@ import { logger } from '../lib/logger'
 
 const cronJobId = (workflowId: string) => `cron-workflow-${workflowId}`
 
+// Matches each individual cron field: *, numbers, ranges (1-5), lists (1,2),
+// steps (*/5 or 1-5/2). Intentionally lenient — catches obvious garbage.
+const CRON_FIELD = /^(\*|[0-9]+([-,][0-9]+)*(\/[0-9]+)?|\*\/[0-9]+)$/
+
+/**
+ * Returns true when the schedule string is a syntactically plausible standard
+ * 5-field cron expression (minute hour dom month dow).
+ *
+ * 6-field (seconds-level) expressions are rejected outright — they allow
+ * sub-minute scheduling that would flood the execution engine.
+ */
+function isValidCronExpression(schedule: string): boolean {
+  const fields = schedule.trim().split(/\s+/)
+  if (fields.length !== 5) return false
+  return fields.every((f) => CRON_FIELD.test(f))
+}
+
 /**
  * Schedules a repeatable BullMQ job for a workflow's cron-trigger node.
  * Idempotent — removes any existing job before scheduling a new one.
@@ -29,6 +46,14 @@ export async function scheduleCronWorkflow(
     logger.warn(
       { workflowId },
       'cron-trigger node has missing or invalid schedule'
+    )
+    return
+  }
+
+  if (!isValidCronExpression(configResult.data.schedule)) {
+    logger.warn(
+      { workflowId, schedule: configResult.data.schedule },
+      'cron-trigger schedule is invalid or uses sub-minute (6-field) syntax — not scheduled'
     )
     return
   }
