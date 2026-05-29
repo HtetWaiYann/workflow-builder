@@ -80,15 +80,13 @@ webhooksRouter.post('/:webhookPath', async (req, res) => {
     }
 
     if (matches.length === 0) {
-      // Return 202 rather than 404 — a distinct status would let callers
-      // enumerate which webhook paths are active.
-      res.status(202).json({ executionIds: [] })
+      // Always 202 — a distinct status or body would let callers enumerate
+      // which webhook paths are active via wordlist attacks.
+      res.status(202).json({ message: 'Accepted' })
       return
     }
 
     // Create executions for all matching workflows and fire them in parallel
-    const executionIds: string[] = []
-
     for (const match of matches) {
       const execution = await prisma.$transaction(async (tx) => {
         const exec = await tx.execution.create({
@@ -111,7 +109,6 @@ webhooksRouter.post('/:webhookPath', async (req, res) => {
       })
 
       void runWorkflow(execution.id, match.nodes, match.edges, inputData)
-      executionIds.push(execution.id)
 
       logger.info(
         {
@@ -123,7 +120,9 @@ webhooksRouter.post('/:webhookPath', async (req, res) => {
       )
     }
 
-    res.status(202).json({ executionIds })
+    // Never expose execution IDs — callers could use them to confirm a
+    // webhook path exists by checking whether the body changes.
+    res.status(202).json({ message: 'Accepted' })
   } catch (err) {
     logger.error({ err }, 'Webhook handler error')
     res
