@@ -1,6 +1,7 @@
 import type { NodeExecutor, ExecutionContext } from '@workflow-builder/shared'
 import { HttpRequestConfigSchema } from '@workflow-builder/shared'
 import { logger } from '../../lib/logger'
+import { assertSafeUrl } from '../../lib/ssrfGuard'
 
 export class HttpRequestExecutor implements NodeExecutor {
   readonly type = 'http-request' as const
@@ -46,7 +47,14 @@ export class HttpRequestExecutor implements NodeExecutor {
       headers['Content-Type'] = headers['Content-Type'] ?? 'application/json'
     }
 
-    logger.debug({ url, method }, 'HTTP request node executing')
+    await assertSafeUrl(url)
+
+    // Log only scheme + host + path — strip query params to avoid leaking secrets
+    const { protocol, host, pathname } = new URL(url)
+    logger.debug(
+      { url: `${protocol}//${host}${pathname}`, method },
+      'HTTP request node executing'
+    )
 
     const response = await fetch(url, init)
 

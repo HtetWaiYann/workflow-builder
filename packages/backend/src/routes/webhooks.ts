@@ -80,10 +80,9 @@ webhooksRouter.post('/:webhookPath', async (req, res) => {
     }
 
     if (matches.length === 0) {
-      res.status(404).json({
-        error: 'No active workflow found for this webhook path',
-        code: 'NOT_FOUND',
-      })
+      // Return 202 rather than 404 — a distinct status would let callers
+      // enumerate which webhook paths are active.
+      res.status(202).json({ executionIds: [] })
       return
     }
 

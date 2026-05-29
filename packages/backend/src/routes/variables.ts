@@ -8,7 +8,7 @@ import { prisma } from '../db/client'
 import { requireAuth } from '../middleware/auth'
 import type { AuthRequest } from '../middleware/auth'
 import { requireWorkspace } from '../middleware/workspace'
-import { encrypt, decrypt } from '../services/encryptionService'
+import { encrypt } from '../services/encryptionService'
 import { logger } from '../lib/logger'
 
 export const variablesRouter = Router()
@@ -126,38 +126,6 @@ variablesRouter.delete(
       res.status(204).send()
     } catch (err) {
       logger.error({ err }, 'Failed to delete workspace variable')
-      res
-        .status(500)
-        .json({ error: 'Internal server error', code: 'INTERNAL_ERROR' })
-    }
-  }
-)
-
-// GET /workspace/variables/:variableId/reveal — Decrypts and returns a variable value.
-// Only available in development for testing purposes.
-variablesRouter.get(
-  '/:variableId/reveal',
-  async (req: AuthRequest, res: Response) => {
-    if (process.env.NODE_ENV !== 'development') {
-      res.status(403).json({ error: 'Forbidden', code: 'FORBIDDEN' })
-      return
-    }
-    try {
-      const variable = await prisma.workspaceVariable.findFirst({
-        where: { id: req.params.variableId, workspaceId: req.workspaceId! },
-      })
-      if (!variable) {
-        res.status(404).json({ error: 'Variable not found', code: 'NOT_FOUND' })
-        return
-      }
-      const value = decrypt(
-        variable.encryptedValue,
-        variable.iv,
-        variable.authTag
-      )
-      res.json({ key: variable.key, value })
-    } catch (err) {
-      logger.error({ err }, 'Failed to reveal workspace variable')
       res
         .status(500)
         .json({ error: 'Internal server error', code: 'INTERNAL_ERROR' })

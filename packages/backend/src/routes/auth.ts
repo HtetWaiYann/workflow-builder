@@ -15,7 +15,7 @@ const router = Router()
 const COOKIE_OPTIONS = {
   httpOnly: true,
   secure: process.env.NODE_ENV === 'production',
-  sameSite: 'lax' as const,
+  sameSite: 'strict' as const,
   maxAge: 7 * 24 * 60 * 60 * 1000,
 }
 
@@ -138,7 +138,11 @@ router.post('/login', async (req, res: Response) => {
 // POST /auth/logout — Expires the JWT cookie to end the session. Safe to call when already
 // unauthenticated; requires no request body.
 router.post('/logout', (_req, res: Response) => {
-  res.clearCookie('token')
+  res.clearCookie('token', {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'strict',
+  })
   res.json({ success: true })
 })
 
