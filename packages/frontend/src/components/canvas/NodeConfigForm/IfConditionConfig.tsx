@@ -1,3 +1,4 @@
+import * as React from 'react'
 import { Input } from '@/components/ui/input'
 import {
   Select,
@@ -15,12 +16,30 @@ interface Props {
 }
 
 export function IfConditionConfig({ config, onChange }: Props) {
+  const [touched, setTouched] = React.useState<ReadonlySet<string>>(new Set())
+
+  function touchField(field: string) {
+    setTouched((prev) => {
+      const next = new Set(prev)
+      next.add(field)
+      return next
+    })
+  }
+
+  const errors: Record<string, string> = {}
+  if (!str(config, 'field').trim()) errors['field'] = 'Required'
+  if (!str(config, 'value').trim()) errors['value'] = 'Required'
+
+  const fieldError = (f: string) => (touched.has(f) ? errors[f] : undefined)
+
   return (
     <div className="space-y-3">
-      <Field label="Field">
+      <Field label="Field" error={fieldError('field')}>
         <Input
           value={str(config, 'field')}
           onChange={(e) => onChange({ ...config, field: e.target.value })}
+          onBlur={() => touchField('field')}
+          aria-invalid={touched.has('field') && !!errors['field']}
           placeholder="data.status"
           className="font-mono"
         />
@@ -42,10 +61,12 @@ export function IfConditionConfig({ config, onChange }: Props) {
           </SelectContent>
         </Select>
       </Field>
-      <Field label="Value">
+      <Field label="Value" error={fieldError('value')}>
         <Input
           value={str(config, 'value')}
           onChange={(e) => onChange({ ...config, value: e.target.value })}
+          onBlur={() => touchField('value')}
+          aria-invalid={touched.has('value') && !!errors['value']}
           placeholder="200"
           className="font-mono"
         />
