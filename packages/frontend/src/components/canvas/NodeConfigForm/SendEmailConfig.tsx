@@ -27,10 +27,20 @@ export function SendEmailConfig({ config, onChange }: Props) {
 
   const toVal = str(config, 'to')
   const extraErrors: Record<string, string> = {}
-  if (toVal && !isValidEmail(toVal)) extraErrors['to'] = 'Must be a valid email'
+  if (toVal && !isValidEmail(toVal))
+    extraErrors['to'] = 'Enter a valid email address'
 
   const errors = { ...schemaErrors, ...extraErrors }
   const fieldError = (f: string) => (touched.has(f) ? errors[f] : undefined)
+
+  const smtpFields = [
+    'smtpHost',
+    'smtpPort',
+    'smtpUser',
+    'smtpPass',
+    'smtpFrom',
+  ]
+  const hasSmtpErrors = smtpFields.some((f) => errors[f])
 
   return (
     <div className="space-y-3">
@@ -68,6 +78,9 @@ export function SendEmailConfig({ config, onChange }: Props) {
       >
         <span>{showSmtp ? '▾' : '▸'}</span>
         SMTP Settings
+        {!showSmtp && hasSmtpErrors && (
+          <span className="bg-destructive ml-1 inline-flex h-1.5 w-1.5 rounded-full" />
+        )}
       </button>
 
       {showSmtp && (

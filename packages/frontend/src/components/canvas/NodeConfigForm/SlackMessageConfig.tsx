@@ -27,8 +27,9 @@ export function SlackMessageConfig({ config, onChange }: Props) {
   const webhookUrl = str(config, 'webhookUrl')
   const extraErrors: Record<string, string> = {}
   if (webhookUrl && !isValidUrl(webhookUrl))
-    extraErrors['webhookUrl'] = 'Must be a valid URL'
-  if (!str(config, 'message').trim()) extraErrors['message'] = 'Required'
+    extraErrors['webhookUrl'] = 'Enter a valid Slack webhook URL'
+  if (!str(config, 'message').trim())
+    extraErrors['message'] = 'Message is required'
 
   const errors = { ...schemaErrors, ...extraErrors }
   const fieldError = (f: string) => (touched.has(f) ? errors[f] : undefined)
@@ -50,6 +51,7 @@ export function SlackMessageConfig({ config, onChange }: Props) {
           value={str(config, 'message')}
           onChange={(e) => onChange({ ...config, message: e.target.value })}
           onBlur={() => touchField('message')}
+          aria-invalid={touched.has('message') && !!errors['message']}
           placeholder="Your message here..."
           rows={3}
         />

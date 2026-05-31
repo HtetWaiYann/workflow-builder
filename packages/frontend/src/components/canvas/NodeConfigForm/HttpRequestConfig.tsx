@@ -43,9 +43,12 @@ export function HttpRequestConfig({ config, onChange }: Props) {
   const headers = str(config, 'headers')
   const body = str(config, 'body')
   const extraErrors: Record<string, string> = {}
-  if (url && !isValidUrl(url)) extraErrors['url'] = 'Must be a valid URL'
-  if (!isValidJson(headers)) extraErrors['headers'] = 'Must be valid JSON'
-  if (showBody && !isValidJson(body)) extraErrors['body'] = 'Must be valid JSON'
+  if (url && !isValidUrl(url))
+    extraErrors['url'] = 'Enter a valid URL (e.g. https://api.example.com)'
+  if (!isValidJson(headers))
+    extraErrors['headers'] = 'Invalid JSON — check your formatting'
+  if (showBody && !isValidJson(body))
+    extraErrors['body'] = 'Invalid JSON — check your formatting'
 
   const errors = { ...schemaErrors, ...extraErrors }
   const fieldError = (f: string) => (touched.has(f) ? errors[f] : undefined)

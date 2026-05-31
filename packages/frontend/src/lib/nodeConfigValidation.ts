@@ -68,10 +68,43 @@ export function isValidEmail(s: string): boolean {
 }
 
 function friendlyMessage(msg: string): string {
-  if (msg.includes('at least 1 character')) return 'Required'
-  if (msg.includes('greater than 0') || msg.includes('positive'))
-    return 'Must be a positive number'
-  if (msg.includes('Expected number') || msg.includes('NaN'))
-    return 'Must be a number'
-  return msg
+  const m = msg.toLowerCase()
+  // Zod v4: "Too small: expected number to be >0"
+  // Zod v4: "Too small: expected string to have >=1 characters"
+  if (m.startsWith('too small')) {
+    if (m.includes('number')) return 'Enter a number greater than 0'
+    return 'This field is required'
+  }
+  // Zod v4: "Too big: ..."
+  if (m.startsWith('too big')) return 'Value exceeds the maximum allowed length'
+  // Zod v4: "Invalid input: expected int, received number"
+  if (m.includes('expected int')) return 'Enter a whole number'
+  // Zod v4: "Invalid input: expected number, received NaN"
+  if (
+    m.includes('expected number') ||
+    m.includes('nan') ||
+    m.includes('not a number')
+  )
+    return 'Enter a valid number'
+  // Enum errors
+  if (
+    m.includes('invalid enum') ||
+    m.includes('invalid option') ||
+    m.includes('invalid_enum_value')
+  )
+    return 'Select a valid option'
+  // Fallbacks for other message formats
+  if (
+    m.includes('at least 1 character') ||
+    m === 'required' ||
+    m.includes('string must contain at least')
+  )
+    return 'This field is required'
+  if (m.includes('greater than 0') || m.includes('positive'))
+    return 'Enter a number greater than 0'
+  if (m.includes('integer')) return 'Enter a whole number'
+  if (m.includes('invalid email') || m.includes('invalid_string'))
+    return 'Enter a valid value'
+  // Never leak raw Zod messages to the user
+  return 'Invalid value'
 }

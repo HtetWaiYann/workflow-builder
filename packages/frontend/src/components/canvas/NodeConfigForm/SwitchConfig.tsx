@@ -27,7 +27,7 @@ export function SwitchConfig({ config, onChange }: Props) {
 
   const fieldEmpty = !str(config, 'field').trim()
   const scalarErrors: Record<string, string> = {}
-  if (fieldEmpty) scalarErrors['field'] = 'Required'
+  if (fieldEmpty) scalarErrors['field'] = 'Field path is required'
 
   function caseError(i: number, key: keyof SwitchCase): string | undefined {
     const touchKey = `cases.${i}.${key}`

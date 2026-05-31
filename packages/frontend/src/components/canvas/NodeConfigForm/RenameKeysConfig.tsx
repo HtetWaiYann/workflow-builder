@@ -31,7 +31,9 @@ export function RenameKeysConfig({ config, onChange }: Props) {
     const touchKey = `mappings.${i}.${key}`
     if (!touched.has(touchKey)) return undefined
     const val = mappings[i]?.[key]
-    return typeof val !== 'string' || !val.trim() ? 'Required' : undefined
+    if (typeof val !== 'string' || !val.trim())
+      return key === 'from' ? '"From" key is required' : '"To" key is required'
+    return undefined
   }
 
   function updateMapping(i: number, key: keyof RenameMapping, value: string) {
@@ -85,11 +87,9 @@ export function RenameKeysConfig({ config, onChange }: Props) {
                 <Trash2 className="size-3.5" />
               </Button>
             </div>
-            {(mappingError(i, 'from') || mappingError(i, 'to')) && (
+            {(mappingError(i, 'from') ?? mappingError(i, 'to')) && (
               <p className="text-destructive text-xs">
-                {mappingError(i, 'from')
-                  ? '"From" key is required'
-                  : '"To" key is required'}
+                {mappingError(i, 'from') ?? mappingError(i, 'to')}
               </p>
             )}
           </div>

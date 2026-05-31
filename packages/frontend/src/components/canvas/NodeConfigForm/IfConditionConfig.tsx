@@ -27,8 +27,9 @@ export function IfConditionConfig({ config, onChange }: Props) {
   }
 
   const errors: Record<string, string> = {}
-  if (!str(config, 'field').trim()) errors['field'] = 'Required'
-  if (!str(config, 'value').trim()) errors['value'] = 'Required'
+  if (!str(config, 'field').trim()) errors['field'] = 'Field path is required'
+  if (!str(config, 'value').trim())
+    errors['value'] = 'Comparison value is required'
 
   const fieldError = (f: string) => (touched.has(f) ? errors[f] : undefined)
 

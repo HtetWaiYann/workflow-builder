@@ -26,7 +26,7 @@ export function CronTriggerConfig({ config, onChange }: Props) {
   const schedule = str(config, 'schedule')
   const extraErrors: Record<string, string> = {}
   if (schedule && !isValidCron(schedule))
-    extraErrors['schedule'] = 'Must be a valid cron expression (5–7 parts)'
+    extraErrors['schedule'] = 'Enter a valid cron expression (e.g. 0 9 * * 1-5)'
 
   const errors = { ...schemaErrors, ...extraErrors }
   const fieldError = (f: string) => (touched.has(f) ? errors[f] : undefined)

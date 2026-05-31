@@ -33,7 +33,7 @@ export function WebhookTriggerConfig({ config, onChange }: Props) {
   const path = str(config, 'path')
   const extraErrors: Record<string, string> = {}
   if (path && !path.startsWith('/'))
-    extraErrors['path'] = "Path must start with '/'"
+    extraErrors['path'] = "Path must begin with '/' (e.g. /my-webhook)"
 
   const errors = { ...schemaErrors, ...extraErrors }
   const fieldError = (f: string) => (touched.has(f) ? errors[f] : undefined)

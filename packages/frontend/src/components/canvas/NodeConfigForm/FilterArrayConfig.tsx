@@ -12,7 +12,7 @@ export function FilterArrayConfig({ config, onChange }: Props) {
   const [touched, setTouched] = React.useState(false)
 
   const expression = str(config, 'expression')
-  const error = !expression.trim() ? 'Required' : undefined
+  const error = !expression.trim() ? 'Filter expression is required' : undefined
   const showError = touched && !!error
 
   return (
