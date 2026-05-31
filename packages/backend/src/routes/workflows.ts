@@ -38,6 +38,10 @@ type PrismaWorkflowBase = {
   updatedAt: Date
 }
 
+type PrismaWorkflowSummaryRow = PrismaWorkflowBase & {
+  _count?: { executions: number }
+}
+
 type PrismaWorkflow = PrismaWorkflowBase & { nodes: unknown; edges: unknown }
 
 const toInputJson = (v: unknown): Prisma.InputJsonValue =>
@@ -59,11 +63,14 @@ const formatWorkflow = (w: PrismaWorkflow): Workflow => ({
   updatedAt: w.updatedAt.toISOString(),
 })
 
-const formatWorkflowSummary = (w: PrismaWorkflowBase): WorkflowSummary => ({
+const formatWorkflowSummary = (
+  w: PrismaWorkflowSummaryRow
+): WorkflowSummary => ({
   id: w.id,
   workspaceId: w.workspaceId,
   name: w.name,
   status: w.status,
+  runCount: w._count?.executions ?? 0,
   createdAt: w.createdAt.toISOString(),
   updatedAt: w.updatedAt.toISOString(),
 })
@@ -90,6 +97,7 @@ router.get('/', async (req: AuthRequest, res: Response): Promise<void> => {
         status: true,
         createdAt: true,
         updatedAt: true,
+        _count: { select: { executions: true } },
       },
     })
     res.json({ workflows: workflows.map(formatWorkflowSummary) })

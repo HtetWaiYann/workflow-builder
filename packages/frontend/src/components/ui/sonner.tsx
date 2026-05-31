@@ -1,12 +1,14 @@
-import type { ComponentProps } from 'react'
+import type { ComponentProps, CSSProperties } from 'react'
 import { Toaster as Sonner } from 'sonner'
+import { useThemeStore } from '@/stores/themeStore'
 
 type ToasterProps = ComponentProps<typeof Sonner>
 
 export function Toaster(props: ToasterProps) {
+  const theme = useThemeStore((s) => s.theme)
   return (
     <Sonner
-      theme="system"
+      theme={theme}
       className="toaster group"
       style={
         {
@@ -29,7 +31,7 @@ export function Toaster(props: ToasterProps) {
           '--info-bg': 'var(--toast-info-bg)',
           '--info-border': 'var(--toast-info-border)',
           '--info-text': 'var(--toast-info-text)',
-        } as React.CSSProperties
+        } as CSSProperties
       }
       {...props}
     />

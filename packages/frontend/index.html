@@ -1,7 +1,22 @@
 <!doctype html>
-<html lang="en" class="dark">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <!-- Apply theme class before first paint to prevent flash of wrong theme -->
+    <script>
+      ;(function () {
+        var k = 'workflow-builder-theme'
+        var t = 'system'
+        try {
+          t = localStorage.getItem(k) || 'system'
+        } catch (e) {}
+        var dark =
+          t === 'dark' ||
+          (t === 'system' &&
+            window.matchMedia('(prefers-color-scheme: dark)').matches)
+        document.documentElement.classList.toggle('dark', dark)
+      })()
+    </script>
     <link rel="icon" type="image/x-icon" href="/favicon_io/favicon.ico" />
     <link
       rel="icon"
@@ -21,8 +36,47 @@
       href="/favicon_io/apple-touch-icon.png"
     />
     <link rel="manifest" href="/favicon_io/site.webmanifest" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap"
+      rel="stylesheet"
+    />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Workflow Builder</title>
+    <meta
+      name="description"
+      content="Workflow Builder — visually design, automate, and monitor workflows with a drag-and-drop canvas."
+    />
+    <meta name="robots" content="index, follow" />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Workflow Builder" />
+    <meta
+      property="og:description"
+      content="Visually design, automate, and monitor workflows with a drag-and-drop canvas."
+    />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="Workflow Builder" />
+    <meta
+      name="twitter:description"
+      content="Visually design, automate, and monitor workflows with a drag-and-drop canvas."
+    />
+
+    <!-- Browser theme color (matches indigo accent) -->
+    <meta
+      name="theme-color"
+      content="#5060d0"
+      media="(prefers-color-scheme: light)"
+    />
+    <meta
+      name="theme-color"
+      content="#9090e8"
+      media="(prefers-color-scheme: dark)"
+    />
   </head>
   <body>
     <div id="root"></div>

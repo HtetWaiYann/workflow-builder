@@ -1,3 +1,5 @@
+import * as React from 'react'
+import { DelayConfigSchema } from '@workflow-builder/shared'
 import type { DelayUnit } from '@/types/nodeConfig.types'
 import { Input } from '@/components/ui/input'
 import {
@@ -8,11 +10,8 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Field } from '@/components/canvas/NodeConfigForm/Field'
-import {
-  str,
-  num,
-  DELAY_UNITS,
-} from '@/lib/nodeConfigHelpers'
+import { str, num, DELAY_UNITS } from '@/lib/nodeConfigHelpers'
+import { getConfigErrors } from '@/lib/nodeConfigValidation'
 
 interface Props {
   config: Record<string, unknown>
@@ -20,9 +19,14 @@ interface Props {
 }
 
 export function DelayConfig({ config, onChange }: Props) {
+  const [durationTouched, setDurationTouched] = React.useState(false)
+
+  const errors = getConfigErrors(DelayConfigSchema, config)
+  const durationError = durationTouched ? errors['duration'] : undefined
+
   return (
     <div className="space-y-3">
-      <Field label="Duration">
+      <Field label="Duration" error={durationError}>
         <Input
           type="number"
           min={1}
@@ -30,6 +34,8 @@ export function DelayConfig({ config, onChange }: Props) {
           onChange={(e) =>
             onChange({ ...config, duration: Number(e.target.value) })
           }
+          onBlur={() => setDurationTouched(true)}
+          aria-invalid={durationTouched && !!errors['duration']}
           placeholder="1"
         />
       </Field>

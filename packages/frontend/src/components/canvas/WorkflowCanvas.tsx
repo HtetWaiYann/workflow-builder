@@ -20,6 +20,7 @@ import type {
 } from '@xyflow/react'
 import type { NodeType } from '@workflow-builder/shared'
 import { useCanvasStore } from '@/stores/canvasStore'
+import { useThemeStore } from '@/stores/themeStore'
 import { WorkflowNode } from './WorkflowNode'
 
 const nodeTypes: NodeTypes = {
@@ -50,6 +51,13 @@ function CanvasFlow() {
   const markDirty = useCanvasStore((s) => s.markDirty)
   const addNode = useCanvasStore((s) => s.addNode)
   const pushHistory = useCanvasStore((s) => s.pushHistory)
+
+  const theme = useThemeStore((s) => s.theme)
+  const isDark =
+    theme === 'dark' ||
+    (theme === 'system' &&
+      typeof window !== 'undefined' &&
+      window.matchMedia('(prefers-color-scheme: dark)').matches)
 
   // Tracks whether a node drag is currently in progress to avoid pushing
   // a history snapshot on every drag-move frame (only push on drag start).
@@ -117,19 +125,19 @@ function CanvasFlow() {
       connectionMode={ConnectionMode.Strict}
       fitView
       fitViewOptions={{ maxZoom: 0.95 }}
-      className="bg-zinc-950 dark:bg-zinc-950"
+      className="bg-zinc-100 dark:bg-zinc-950"
     >
       <Background
         variant={BackgroundVariant.Dots}
         gap={20}
         size={1}
-        color="rgba(255,255,255,0.07)"
+        color={isDark ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.1)'}
       />
       <Controls position="bottom-left" showInteractive={false} />
       <MiniMap
         position="bottom-right"
-        nodeColor="oklch(0.36 0.008 264)"
-        maskColor="rgba(0,0,0,0.55)"
+        nodeColor={isDark ? 'oklch(0.36 0.008 264)' : 'oklch(0.7 0 0)'}
+        maskColor={isDark ? 'rgba(0,0,0,0.55)' : 'rgba(0,0,0,0.04)'}
       />
     </ReactFlow>
   )

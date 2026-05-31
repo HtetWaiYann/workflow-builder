@@ -68,7 +68,7 @@ describe('RegisterPage', () => {
 
     await userEvent.type(screen.getByLabelText('Name (optional)'), 'New User')
     await userEvent.type(screen.getByLabelText('Email'), 'new@example.com')
-    await userEvent.type(screen.getByLabelText('Password'), 'password123')
+    await userEvent.type(screen.getByLabelText('Password'), 'Password1!')
     await userEvent.click(
       screen.getByRole('button', { name: 'Create account' })
     )
@@ -76,7 +76,7 @@ describe('RegisterPage', () => {
     await waitFor(() => {
       expect(mockRegister).toHaveBeenCalledWith({
         email: 'new@example.com',
-        password: 'password123',
+        password: 'Password1!',
         name: 'New User',
       })
     })
@@ -87,7 +87,7 @@ describe('RegisterPage', () => {
     renderPage()
 
     await userEvent.type(screen.getByLabelText('Email'), 'new@example.com')
-    await userEvent.type(screen.getByLabelText('Password'), 'password123')
+    await userEvent.type(screen.getByLabelText('Password'), 'Password1!')
     await userEvent.click(
       screen.getByRole('button', { name: 'Create account' })
     )
@@ -95,7 +95,7 @@ describe('RegisterPage', () => {
     await waitFor(() => {
       expect(mockRegister).toHaveBeenCalledWith({
         email: 'new@example.com',
-        password: 'password123',
+        password: 'Password1!',
         name: undefined,
       })
     })
@@ -106,7 +106,7 @@ describe('RegisterPage', () => {
     renderPage()
 
     await userEvent.type(screen.getByLabelText('Email'), 'new@example.com')
-    await userEvent.type(screen.getByLabelText('Password'), 'password123')
+    await userEvent.type(screen.getByLabelText('Password'), 'Password1!')
     await userEvent.click(
       screen.getByRole('button', { name: 'Create account' })
     )
@@ -123,7 +123,7 @@ describe('RegisterPage', () => {
     renderPage()
 
     await userEvent.type(screen.getByLabelText('Email'), 'taken@example.com')
-    await userEvent.type(screen.getByLabelText('Password'), 'password123')
+    await userEvent.type(screen.getByLabelText('Password'), 'Password1!')
     await userEvent.click(
       screen.getByRole('button', { name: 'Create account' })
     )
@@ -140,7 +140,7 @@ describe('RegisterPage', () => {
     renderPage()
 
     await userEvent.type(screen.getByLabelText('Email'), 'new@example.com')
-    await userEvent.type(screen.getByLabelText('Password'), 'password123')
+    await userEvent.type(screen.getByLabelText('Password'), 'Password1!')
     await userEvent.click(
       screen.getByRole('button', { name: 'Create account' })
     )

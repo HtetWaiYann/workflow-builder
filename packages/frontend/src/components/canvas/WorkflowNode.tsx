@@ -45,7 +45,7 @@ export function WorkflowNode(props: NodeProps) {
             }
           : undefined
       }
-      className="border-border bg-card relative w-[220px] overflow-hidden rounded-lg border select-none dark:border-zinc-700 dark:bg-zinc-900"
+      className="relative w-[220px] overflow-hidden rounded-lg border border-zinc-200 bg-white select-none dark:border-zinc-700 dark:bg-zinc-900"
     >
       {/* Input handles */}
       {def.inputs.map((port, i) => (
@@ -54,7 +54,7 @@ export function WorkflowNode(props: NodeProps) {
           type="target"
           position={Position.Left}
           id={port.id}
-          className="!border-card dark:!border-zinc-900"
+          className="!border-white dark:!border-zinc-900"
           style={{
             top: `${((i + 1) / (inputCount + 1)) * 100}%`,
             background: def.color,
@@ -84,7 +84,7 @@ export function WorkflowNode(props: NodeProps) {
       </div>
 
       {/* Divider */}
-      <div className="border-border border-t dark:border-zinc-700/80" />
+      <div className="border-t border-zinc-200 dark:border-zinc-700/80" />
 
       {/* Body */}
       <div className="px-3 py-2">
@@ -100,7 +100,7 @@ export function WorkflowNode(props: NodeProps) {
           type="source"
           position={Position.Right}
           id={port.id}
-          className="!border-card dark:!border-zinc-900"
+          className="!border-white dark:!border-zinc-900"
           style={{
             top: `${((i + 1) / (outputCount + 1)) * 100}%`,
             background: def.color,

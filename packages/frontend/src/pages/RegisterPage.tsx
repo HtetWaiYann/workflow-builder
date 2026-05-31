@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import type { FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { CircleCheck } from 'lucide-react'
 import { useAuthStore } from '@/stores/authStore'
 import { api } from '@/lib/api'
 import { Button } from '@/components/ui/button'
@@ -15,12 +16,38 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 
+const PASSWORD_RULES = [
+  {
+    id: 'length',
+    label: 'At least 8 characters',
+    test: (p: string) => p.length >= 8,
+  },
+  {
+    id: 'uppercase',
+    label: 'One uppercase letter (A–Z)',
+    test: (p: string) => /[A-Z]/.test(p),
+  },
+  {
+    id: 'number',
+    label: 'One number (0–9)',
+    test: (p: string) => /[0-9]/.test(p),
+  },
+  {
+    id: 'special',
+    label: 'One special character',
+    test: (p: string) => /[^A-Za-z0-9]/.test(p),
+  },
+] as const
+
 export function RegisterPage() {
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [passwordTouched, setPasswordTouched] = useState(false)
   const [error, setError] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
+
+  const allRulesPassed = PASSWORD_RULES.every((r) => r.test(password))
   const setAuth = useAuthStore((s) => s.setAuth)
   const navigate = useNavigate()
 
@@ -91,14 +118,45 @@ export function RegisterPage() {
                 type="password"
                 autoComplete="new-password"
                 required
-                minLength={8}
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(e) => {
+                  setPassword(e.target.value)
+                  if (!passwordTouched) setPasswordTouched(true)
+                }}
               />
+              {passwordTouched && (
+                <ul
+                  className="mt-1 flex flex-col gap-1"
+                  aria-label="Password requirements"
+                >
+                  {PASSWORD_RULES.map((rule) => {
+                    const passed = rule.test(password)
+                    return (
+                      <li
+                        key={rule.id}
+                        className={`flex items-center gap-1.5 text-xs ${
+                          passed
+                            ? 'text-green-500 dark:text-green-400'
+                            : 'text-muted-foreground'
+                        }`}
+                      >
+                        <CircleCheck
+                          className={`size-3.5 shrink-0 ${passed ? 'opacity-100' : 'opacity-30'}`}
+                        />
+                        {rule.label}
+                      </li>
+                    )
+                  })}
+                </ul>
+              )}
             </div>
           </CardContent>
           <CardFooter className="flex flex-col gap-3">
-            <Button type="submit" className="w-full" disabled={isSubmitting}>
+            <Button
+              type="submit"
+              className="w-full"
+              disabled={isSubmitting || !allRulesPassed}
+            >
               {isSubmitting ? 'Creating account…' : 'Create account'}
             </Button>
             <p className="text-muted-foreground text-sm">

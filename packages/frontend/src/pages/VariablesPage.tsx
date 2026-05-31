@@ -1,5 +1,6 @@
 import * as React from 'react'
 import { Plus, Trash2, Eye, EyeOff, AlertCircle, X } from 'lucide-react'
+import { Link } from 'react-router-dom'
 import { toast } from 'sonner'
 import type { WorkspaceVariable } from '@workflow-builder/shared'
 import { api } from '@/lib/api'
@@ -278,6 +279,19 @@ export function VariablesPage() {
           <div className="mx-auto w-full max-w-3xl">
             <div className="mb-6 flex items-center justify-between">
               <div>
+                <nav
+                  aria-label="Breadcrumb"
+                  className="text-muted-foreground mb-1 flex items-center gap-1.5 text-xs"
+                >
+                  <Link
+                    to="/workflows"
+                    className="hover:text-foreground transition-colors"
+                  >
+                    Workflows
+                  </Link>
+                  <span aria-hidden="true">/</span>
+                  <span className="text-foreground">Workspace Variables</span>
+                </nav>
                 <h1 className="text-xl font-semibold">Workspace Variables</h1>
                 <p className="text-muted-foreground mt-1 text-sm">
                   Store secrets and reference them in node configs as{' '}

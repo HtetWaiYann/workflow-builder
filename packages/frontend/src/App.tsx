@@ -1,5 +1,7 @@
+import { useEffect } from 'react'
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { useInitAuth } from '@/hooks/useInitAuth'
+import { useThemeStore } from '@/stores/themeStore'
 import { ProtectedRoute } from '@/components/ProtectedRoute'
 import { PublicRoute } from '@/components/PublicRoute'
 import { LoginPage } from '@/pages/LoginPage'
@@ -8,6 +10,27 @@ import { DashboardPage } from '@/pages/DashboardPage'
 import { CanvasPage } from '@/pages/CanvasPage'
 import { VariablesPage } from '@/pages/VariablesPage'
 import { Toaster } from '@/components/ui/sonner'
+
+function ThemeApplier() {
+  const theme = useThemeStore((s) => s.theme)
+
+  useEffect(() => {
+    const root = document.documentElement
+    if (theme !== 'system') {
+      root.classList.toggle('dark', theme === 'dark')
+      return
+    }
+    const mq = window.matchMedia('(prefers-color-scheme: dark)')
+    function handleChange(e: MediaQueryListEvent) {
+      root.classList.toggle('dark', e.matches)
+    }
+    root.classList.toggle('dark', mq.matches)
+    mq.addEventListener('change', handleChange)
+    return () => mq.removeEventListener('change', handleChange)
+  }, [theme])
+
+  return null
+}
 
 function AppRoutes() {
   useInitAuth()
@@ -64,6 +87,7 @@ function AppRoutes() {
 function App() {
   return (
     <BrowserRouter>
+      <ThemeApplier />
       <AppRoutes />
       <Toaster />
     </BrowserRouter>
