@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ArrowLeft, Loader2, Play, Undo2, Redo2 } from 'lucide-react'
+import { ArrowLeft, History, Loader2, Play, Undo2, Redo2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useCanvasStore } from '@/stores/canvasStore'
 import { useExecutionStore } from '@/stores/executionStore'
@@ -25,6 +25,7 @@ export function CanvasToolbar() {
   const edges = useCanvasStore((s) => s.edges)
   const isTriggering = useExecutionStore((s) => s.isTriggering)
   const triggerExecution = useExecutionStore((s) => s.triggerExecution)
+  const openHistoryPanel = useExecutionStore((s) => s.openHistoryPanel)
 
   const cycleDetected = hasCycle(nodes, edges)
 
@@ -133,6 +134,20 @@ export function CanvasToolbar() {
           title="Redo (Ctrl+Shift+Z)"
         >
           <Redo2 className="size-4" />
+        </Button>
+
+        <Button
+          variant="ghost"
+          size="sm"
+          className="h-8 w-8 p-0"
+          disabled={!workflowId}
+          onClick={() => {
+            if (workflowId) openHistoryPanel(workflowId).catch(() => {})
+          }}
+          aria-label="Run history"
+          title="Run history"
+        >
+          <History className="size-4" />
         </Button>
 
         <Button

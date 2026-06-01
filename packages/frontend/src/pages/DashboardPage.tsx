@@ -1,6 +1,8 @@
 import * as React from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Plus, Search, LayoutGrid, AlertCircle } from 'lucide-react'
+import { useExecutionStore } from '@/stores/executionStore'
+import { HistoryPanel } from '@/components/panels/HistoryPanel'
 import { toast } from 'sonner'
 import type { WorkflowSummary } from '@workflow-builder/shared'
 import { useWorkflowStore } from '@/stores/workflowStore'
@@ -25,8 +27,18 @@ export function DashboardPage() {
     setError,
   } = useWorkflowStore()
 
+  const openHistoryPanel = useExecutionStore((s) => s.openHistoryPanel)
+
   const [search, setSearch] = React.useState('')
   const [newDialogOpen, setNewDialogOpen] = React.useState(false)
+  const [historyWorkflowId, setHistoryWorkflowId] = React.useState<
+    string | null
+  >(null)
+
+  function handleViewHistory(id: string) {
+    setHistoryWorkflowId(id)
+    openHistoryPanel(id).catch(() => {})
+  }
 
   // Fetch workflow list on mount
   React.useEffect(() => {
@@ -184,6 +196,7 @@ export function DashboardPage() {
                   onActivate={handleActivate}
                   onDeactivate={handleDeactivate}
                   onDelete={handleDelete}
+                  onViewHistory={handleViewHistory}
                 />
               ))}
             </div>
@@ -212,6 +225,14 @@ export function DashboardPage() {
           }}
         />
       )}
+
+      <HistoryPanel
+        workflowName={
+          historyWorkflowId
+            ? workflows.find((w) => w.id === historyWorkflowId)?.name
+            : undefined
+        }
+      />
     </div>
   )
 }

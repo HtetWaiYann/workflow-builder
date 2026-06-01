@@ -21,6 +21,7 @@ const handlers = {
   onActivate: vi.fn(),
   onDeactivate: vi.fn(),
   onDelete: vi.fn(),
+  onViewHistory: vi.fn(),
 }
 
 function renderCard(overrides: Partial<WorkflowSummary> = {}) {
@@ -73,5 +74,13 @@ describe('WorkflowCard', () => {
     await userEvent.click(screen.getByRole('button'))
     await userEvent.click(screen.getByText('Rename'))
     expect(handlers.onRename).toHaveBeenCalledWith(fakeWorkflow)
+  })
+
+  it('calls onViewHistory when "Run History" is selected from the menu', async () => {
+    renderCard()
+    await userEvent.click(screen.getByRole('button'))
+    await userEvent.click(screen.getByText('Run History'))
+    expect(handlers.onViewHistory).toHaveBeenCalledWith('wf-1')
+    expect(handlers.onOpen).not.toHaveBeenCalled()
   })
 })
