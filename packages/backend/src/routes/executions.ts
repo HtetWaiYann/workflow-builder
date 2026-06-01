@@ -31,6 +31,7 @@ type PrismaNodeRun = {
   inputData: unknown
   outputData: unknown
   error: string | null
+  retryCount: number
   startedAt: Date | null
   finishedAt: Date | null
 }
@@ -60,6 +61,7 @@ const formatNodeRun = (r: PrismaNodeRun): ExecutionNodeRun => ({
   inputData: parseJsonRecord(r.inputData),
   outputData: parseJsonRecord(r.outputData),
   error: r.error,
+  retryCount: r.retryCount,
   startedAt: r.startedAt?.toISOString() ?? null,
   finishedAt: r.finishedAt?.toISOString() ?? null,
 })

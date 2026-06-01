@@ -57,6 +57,7 @@ function setNodeRun(nodeId: string, status: NodeRunStatus) {
           inputData: null,
           outputData: null,
           error: null,
+          retryCount: 0,
           startedAt: null,
           finishedAt: null,
         },

@@ -6,6 +6,7 @@ import { getNodeDefinition, ICON_MAP } from '@/lib/nodeRegistry'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { NodeConfigForm } from '@/components/canvas/NodeConfigForm'
+import { ErrorConfigForm } from '@/components/canvas/NodeConfigForm/ErrorConfigForm'
 import { NodeDocsButton } from '@/components/canvas/NodeDocs'
 
 interface NodeLabelInputProps {
@@ -45,6 +46,7 @@ export function ConfigPanel() {
   const selectNode = useCanvasStore((s) => s.selectNode)
   const updateNodeLabel = useCanvasStore((s) => s.updateNodeLabel)
   const updateNodeConfig = useCanvasStore((s) => s.updateNodeConfig)
+  const updateNodeErrorConfig = useCanvasStore((s) => s.updateNodeErrorConfig)
 
   const selectedNode = selectedNodeId
     ? nodes.find((n) => n.id === selectedNodeId)
@@ -55,8 +57,13 @@ export function ConfigPanel() {
     : 'manual-trigger'
   const def = selectedNode ? getNodeDefinition(nodeType) : null
   const IconComponent = def ? ICON_MAP[def.icon] : null
+  const isTrigger = def?.group === 'Triggers'
 
   const nodeConfig = (selectedNode?.data.config ?? {}) as Record<
+    string,
+    unknown
+  >
+  const nodeErrorConfig = (selectedNode?.data.errorConfig ?? {}) as Record<
     string,
     unknown
   >
@@ -123,6 +130,25 @@ export function ConfigPanel() {
                 if (selectedNodeId) updateNodeConfig(selectedNodeId, config)
               }}
             />
+          )}
+
+          {/* Error handling — not shown for trigger nodes */}
+          {selectedNode && !isTrigger && (
+            <div className="space-y-2">
+              <div className="border-t pt-3">
+                <p className="text-muted-foreground mb-3 text-xs font-medium tracking-wide uppercase">
+                  Error Handling
+                </p>
+                <ErrorConfigForm
+                  key={selectedNodeId ?? ''}
+                  errorConfig={nodeErrorConfig}
+                  onChange={(errorConfig) => {
+                    if (selectedNodeId)
+                      updateNodeErrorConfig(selectedNodeId, errorConfig)
+                  }}
+                />
+              </div>
+            </div>
           )}
         </div>
 

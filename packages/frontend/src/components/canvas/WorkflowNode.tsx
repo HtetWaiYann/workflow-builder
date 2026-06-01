@@ -1,6 +1,7 @@
 import { Handle, Position } from '@xyflow/react'
 import type { NodeProps } from '@xyflow/react'
 import type { NodeType, NodeRunStatus } from '@workflow-builder/shared'
+import { ERROR_HANDLE_ID } from '@workflow-builder/shared'
 import { getNodeDefinition, ICON_MAP } from '@/lib/nodeRegistry'
 import { useExecutionStore } from '@/stores/executionStore'
 
@@ -31,6 +32,10 @@ export function WorkflowNode(props: NodeProps) {
 
   const inputCount = def.inputs.length
   const outputCount = def.outputs.length
+  const showErrorHandle =
+    def.group !== 'Triggers' &&
+    (props.data.errorConfig as { errorBranch?: boolean } | undefined)
+      ?.errorBranch === true
 
   const statusBorderColor = nodeRun ? STATUS_BORDER_COLOR[nodeRun.status] : null
   const activeBorderColor = props.selected ? def.color : statusBorderColor
@@ -109,6 +114,23 @@ export function WorkflowNode(props: NodeProps) {
           }}
         />
       ))}
+
+      {/* Error output handle — shown when errorBranch is enabled */}
+      {showErrorHandle && (
+        <Handle
+          type="source"
+          position={Position.Bottom}
+          id={ERROR_HANDLE_ID}
+          title="Error branch"
+          className="!border-white dark:!border-zinc-900"
+          style={{
+            left: '50%',
+            background: '#ef4444',
+            width: 8,
+            height: 8,
+          }}
+        />
+      )}
     </div>
   )
 }

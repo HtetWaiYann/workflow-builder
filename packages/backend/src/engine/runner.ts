@@ -1,5 +1,9 @@
 import type { WorkflowNode, WorkflowEdge } from '@workflow-builder/shared'
-import { BRANCH_HANDLE_KEY } from '@workflow-builder/shared'
+import {
+  BRANCH_HANDLE_KEY,
+  ERROR_HANDLE_ID,
+  NodeErrorConfigSchema,
+} from '@workflow-builder/shared'
 import type { Prisma } from '../generated/prisma/client'
 import { prisma } from '../db/client'
 import { logger } from '../lib/logger'
@@ -182,33 +186,80 @@ export async function runWorkflow(
         break
       }
 
-      try {
-        const resolvedNodeData = resolveVariables(
-          node.data,
-          vars,
-          nodeInputData
-        )
-        const output = await executor.execute(
-          resolvedNodeData,
-          nodeInputData,
-          context
-        )
-        context.nodeOutputs[node.id] = output
+      // Parse per-node error config (defaults: policy=stop, no retries, no error branch)
+      const errorConfigResult = NodeErrorConfigSchema.safeParse(
+        node.data.errorConfig ?? {}
+      )
+      const errorConfig = errorConfigResult.success
+        ? errorConfigResult.data
+        : {
+            policy: 'stop' as const,
+            retryCount: 1,
+            retryDelayMs: 1000,
+            errorBranch: false,
+          }
+
+      const maxAttempts =
+        errorConfig.policy === 'retry' ? errorConfig.retryCount + 1 : 1
+
+      let successOutput: Record<string, unknown> | null = null
+      let lastErrorMessage: string | null = null
+
+      for (let attempt = 0; attempt < maxAttempts; attempt++) {
+        if (attempt > 0) {
+          await prisma.executionNodeRun.update({
+            where: { id: nodeRun.id },
+            data: { retryCount: attempt },
+          })
+          if (errorConfig.retryDelayMs > 0) {
+            await new Promise<void>((resolve) =>
+              setTimeout(resolve, errorConfig.retryDelayMs)
+            )
+          }
+        }
+
+        try {
+          const resolvedNodeData = resolveVariables(
+            node.data,
+            vars,
+            nodeInputData
+          )
+          const output = await executor.execute(
+            resolvedNodeData,
+            nodeInputData,
+            context
+          )
+          successOutput = output
+          lastErrorMessage = null
+          break
+        } catch (err) {
+          lastErrorMessage = err instanceof Error ? err.message : String(err)
+          logger.warn(
+            { executionId, nodeId: node.id, attempt },
+            'Node attempt failed'
+          )
+        }
+      }
+
+      const nodeOutgoing = outgoingEdgesMap.get(node.id) ?? []
+
+      if (successOutput !== null) {
+        context.nodeOutputs[node.id] = successOutput
 
         await prisma.executionNodeRun.update({
           where: { id: nodeRun.id },
           data: {
             status: 'SUCCESS',
             inputData: toJson(nodeInputData),
-            outputData: toJson(output),
+            outputData: toJson(successOutput),
             finishedAt: new Date(),
           },
         })
 
-        // Activate outgoing edges — branching nodes only activate the matched handle
-        const nodeOutgoing = outgoingEdgesMap.get(node.id) ?? []
+        // Activate outgoing edges — branching nodes only activate the matched handle;
+        // error handle edges are never activated on success
         if (BRANCHING_TYPES.has(node.type)) {
-          const activeHandle = output[BRANCH_HANDLE_KEY]
+          const activeHandle = successOutput[BRANCH_HANDLE_KEY]
           if (typeof activeHandle === 'string') {
             for (const edge of nodeOutgoing) {
               if (edge.sourceHandle === activeHandle) {
@@ -218,27 +269,53 @@ export async function runWorkflow(
           }
         } else {
           for (const edge of nodeOutgoing) {
-            activeEdgeIds.add(edge.id)
+            if (edge.sourceHandle !== ERROR_HANDLE_ID) {
+              activeEdgeIds.add(edge.id)
+            }
           }
         }
-      } catch (err) {
-        const message = err instanceof Error ? err.message : String(err)
-        logger.error(
-          { executionId, nodeId: node.id, err },
-          'Node execution failed'
-        )
+      } else {
+        // All attempts failed
+        logger.error({ executionId, nodeId: node.id }, 'Node execution failed')
 
         await prisma.executionNodeRun.update({
           where: { id: nodeRun.id },
           data: {
             status: 'ERROR',
-            error: message,
+            error: lastErrorMessage,
             inputData: toJson(nodeInputData),
+            retryCount: maxAttempts - 1,
             finishedAt: new Date(),
           },
         })
-        failed = true
-        break
+
+        context.nodeOutputs[node.id] = { _error: lastErrorMessage }
+
+        // Activate error branch edges if the node has errorBranch enabled
+        if (errorConfig.errorBranch) {
+          for (const edge of nodeOutgoing) {
+            if (edge.sourceHandle === ERROR_HANDLE_ID) {
+              activeEdgeIds.add(edge.id)
+            }
+          }
+        }
+
+        if (errorConfig.policy === 'continue') {
+          // Activate normal outgoing edges so the main flow continues with empty data
+          for (const edge of nodeOutgoing) {
+            if (edge.sourceHandle !== ERROR_HANDLE_ID) {
+              activeEdgeIds.add(edge.id)
+            }
+          }
+        } else {
+          // stop (includes retry-exhausted): mark execution failed
+          failed = true
+          if (!errorConfig.errorBranch) {
+            // No error branch to follow — short-circuit remaining nodes
+            break
+          }
+          // Error branch present: don't break so its downstream nodes can execute
+        }
       }
     }
 

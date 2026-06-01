@@ -55,6 +55,12 @@ interface CanvasStore {
   /** Updates a single node's config data and marks dirty. */
   updateNodeConfig(nodeId: string, config: Record<string, unknown>): void
 
+  /** Updates a single node's error handling config and marks dirty. */
+  updateNodeErrorConfig(
+    nodeId: string,
+    errorConfig: Record<string, unknown>
+  ): void
+
   /** Updates a single node's display label and marks dirty. */
   updateNodeLabel(nodeId: string, label: string): void
 
@@ -194,6 +200,14 @@ export const useCanvasStore = create<CanvasStore>()(
       set((draft) => {
         const node = draft.nodes.find((n) => n.id === nodeId)
         if (node) node.data.config = config
+      })
+      get().markDirty()
+    },
+
+    updateNodeErrorConfig: (nodeId, errorConfig) => {
+      set((draft) => {
+        const node = draft.nodes.find((n) => n.id === nodeId)
+        if (node) node.data.errorConfig = errorConfig
       })
       get().markDirty()
     },

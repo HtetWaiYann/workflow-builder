@@ -102,6 +102,7 @@ model ExecutionNodeRun {
   inputData   Json?
   outputData  Json?
   error       String?
+  retryCount  Int           @default(0)
   startedAt   DateTime?
   finishedAt  DateTime?
 
