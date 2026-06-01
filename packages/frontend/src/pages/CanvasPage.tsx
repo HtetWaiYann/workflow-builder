@@ -8,6 +8,7 @@ import { NodePalette } from '@/components/canvas/NodePalette'
 import { WorkflowCanvas } from '@/components/canvas/WorkflowCanvas'
 import { ConfigPanel } from '@/components/canvas/ConfigPanel'
 import { RunPanel } from '@/components/canvas/RunPanel'
+import { HistoryPanel } from '@/components/panels/HistoryPanel'
 
 export function CanvasPage() {
   const { id } = useParams<{ id: string }>()
@@ -19,7 +20,16 @@ export function CanvasPage() {
   const reset = useCanvasStore((s) => s.reset)
   const undo = useCanvasStore((s) => s.undo)
   const redo = useCanvasStore((s) => s.redo)
+  const nodes = useCanvasStore((s) => s.nodes)
+  const workflowName = useCanvasStore((s) => s.workflowName)
   const resetExecution = useExecutionStore((s) => s.reset)
+
+  const nodeLabelMap = Object.fromEntries(
+    nodes.map((n) => [
+      n.id,
+      (n.data.label as string | undefined) ?? n.type ?? n.id,
+    ])
+  )
 
   React.useEffect(() => {
     if (!id) {
@@ -89,6 +99,8 @@ export function CanvasPage() {
           <RunPanel />
         </div>
       )}
+
+      <HistoryPanel workflowName={workflowName} nodeLabelMap={nodeLabelMap} />
     </div>
   )
 }

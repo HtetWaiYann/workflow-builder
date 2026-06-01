@@ -11,6 +11,7 @@ import {
   Play,
   Activity,
   Copy,
+  History,
   Pencil,
   Trash2,
   Power,
@@ -26,6 +27,7 @@ interface WorkflowCardProps {
   onActivate: (id: string) => void
   onDeactivate: (id: string) => void
   onDelete: (id: string) => void
+  onViewHistory: (id: string) => void
 }
 
 function formatRelativeTime(iso: string): string {
@@ -49,6 +51,7 @@ export function WorkflowCard({
   onActivate,
   onDeactivate,
   onDelete,
+  onViewHistory,
 }: WorkflowCardProps) {
   const isActive = workflow.status === 'ACTIVE'
   const isInactive = workflow.status === 'INACTIVE'
@@ -93,6 +96,10 @@ export function WorkflowCard({
             <DropdownMenuItem onSelect={() => onDuplicate(workflow.id)}>
               <Copy />
               Duplicate
+            </DropdownMenuItem>
+            <DropdownMenuItem onSelect={() => onViewHistory(workflow.id)}>
+              <History />
+              Run History
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             {isActive ? (

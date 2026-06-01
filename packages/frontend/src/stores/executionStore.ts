@@ -17,12 +17,21 @@ const TERMINAL_STATUSES = new Set(['SUCCESS', 'ERROR'])
 interface ExecutionStore {
   /** The execution currently displayed in the run panel, including node runs. */
   currentExecution: Execution | null
-  /** Recent execution summaries for the open workflow. */
+  /** Recent execution summaries for the open workflow, shared by RunPanel and HistoryPanel. */
   recentExecutions: ExecutionSummary[]
   /** True while the POST /executions request is in flight. */
   isTriggering: boolean
   /** Controls run panel visibility. */
   showRunPanel: boolean
+
+  /** Controls visibility of the History panel (right-side slide-in). */
+  showHistoryPanel: boolean
+  /** The workflow ID currently shown in the history panel. */
+  historyWorkflowId: string | null
+  /** True while selectHistoryExecution is fetching the full execution. */
+  isLoadingHistoryDetail: boolean
+  /** Full execution being viewed in the history drill-down. Null means list view is active. */
+  historyExecution: Execution | null
 
   /**
    * Triggers a manual execution for the given workflow, opens the run panel,
@@ -49,6 +58,26 @@ interface ExecutionStore {
   /** Closes the run panel and stops any active polling. */
   closeRunPanel(): void
 
+  /**
+   * Opens the history panel for a workflow and loads its recent executions.
+   * Reuses the existing recentExecutions array via loadExecutions().
+   * @param workflowId - The workflow whose run history to display.
+   */
+  openHistoryPanel(workflowId: string): Promise<void>
+
+  /** Closes the history panel and resets all history-scoped state. */
+  closeHistoryPanel(): void
+
+  /**
+   * Fetches a full execution (including nodeRuns) and shows it in the history detail view.
+   * Sets isLoadingHistoryDetail while the request is in flight.
+   * @param executionId - The execution to drill into.
+   */
+  selectHistoryExecution(executionId: string): Promise<void>
+
+  /** Returns to the history list view without closing the panel. */
+  backToHistoryList(): void
+
   /** Resets all execution state (call when leaving the canvas). */
   reset(): void
 }
@@ -59,6 +88,10 @@ export const useExecutionStore = create<ExecutionStore>()(
     recentExecutions: [],
     isTriggering: false,
     showRunPanel: false,
+    showHistoryPanel: false,
+    historyWorkflowId: null,
+    isLoadingHistoryDetail: false,
+    historyExecution: null,
 
     triggerExecution: async (workflowId) => {
       clearPoll()
@@ -141,6 +174,47 @@ export const useExecutionStore = create<ExecutionStore>()(
       })
     },
 
+    openHistoryPanel: async (workflowId) => {
+      set((draft) => {
+        draft.showHistoryPanel = true
+        draft.historyWorkflowId = workflowId
+        draft.historyExecution = null
+        draft.isLoadingHistoryDetail = false
+      })
+      await get().loadExecutions(workflowId)
+    },
+
+    closeHistoryPanel: () =>
+      set((draft) => {
+        draft.showHistoryPanel = false
+        draft.historyWorkflowId = null
+        draft.historyExecution = null
+        draft.isLoadingHistoryDetail = false
+      }),
+
+    selectHistoryExecution: async (executionId) => {
+      set((draft) => {
+        draft.isLoadingHistoryDetail = true
+      })
+      try {
+        const { execution } = await api.executions.get(executionId)
+        set((draft) => {
+          draft.historyExecution = execution
+          draft.isLoadingHistoryDetail = false
+        })
+      } catch {
+        set((draft) => {
+          draft.isLoadingHistoryDetail = false
+        })
+      }
+    },
+
+    backToHistoryList: () =>
+      set((draft) => {
+        draft.historyExecution = null
+        draft.isLoadingHistoryDetail = false
+      }),
+
     reset: () => {
       clearPoll()
       set((draft) => {
@@ -148,6 +222,10 @@ export const useExecutionStore = create<ExecutionStore>()(
         draft.recentExecutions = []
         draft.isTriggering = false
         draft.showRunPanel = false
+        draft.showHistoryPanel = false
+        draft.historyWorkflowId = null
+        draft.isLoadingHistoryDetail = false
+        draft.historyExecution = null
       })
     },
   }))
