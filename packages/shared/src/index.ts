@@ -163,6 +163,7 @@ export const ExecutionNodeRunSchema = z.object({
   inputData: z.record(z.string(), z.unknown()).nullable(),
   outputData: z.record(z.string(), z.unknown()).nullable(),
   error: z.string().nullable(),
+  retryCount: z.number().int().default(0),
   startedAt: z.string().nullable(),
   finishedAt: z.string().nullable(),
 })
@@ -219,6 +220,32 @@ export interface NodeExecutor {
  * The value must match a sourceHandle on one of the node's outgoing edges.
  */
 export const BRANCH_HANDLE_KEY = '_activeHandle' as const
+
+/**
+ * Handle id for the special error output port on non-trigger nodes.
+ * Edges from this handle are activated when the node fails.
+ */
+export const ERROR_HANDLE_ID = '__error__' as const
+
+// Node error handling schemas
+
+export const NodeErrorPolicySchema = z.enum(['stop', 'continue', 'retry'])
+export type NodeErrorPolicy = z.infer<typeof NodeErrorPolicySchema>
+
+/**
+ * Per-node error handling configuration stored in node.data.errorConfig.
+ */
+export const NodeErrorConfigSchema = z.object({
+  /** What to do when the node fails (after retries are exhausted). */
+  policy: NodeErrorPolicySchema.default('stop'),
+  /** Number of retry attempts when policy is 'retry'. */
+  retryCount: z.number().int().min(1).max(10).default(1),
+  /** Milliseconds to wait between retry attempts. */
+  retryDelayMs: z.number().int().min(0).default(1000),
+  /** Whether to show and use the error output handle for routing failures. */
+  errorBranch: z.boolean().default(false),
+})
+export type NodeErrorConfig = z.infer<typeof NodeErrorConfigSchema>
 
 // Node config schemas (used by both backend executors and frontend forms)
 
