@@ -9,12 +9,16 @@ const fakeAuthResponse: AuthResponse = {
     name: 'Test',
     createdAt: '2024-01-01T00:00:00.000Z',
   },
-  workspace: {
-    id: 'ws-1',
-    name: "Test's Workspace",
-    userId: 'user-1',
-    createdAt: '2024-01-01T00:00:00.000Z',
-  },
+  workspaces: [
+    {
+      workspace: {
+        id: 'ws-1',
+        name: "Test's Workspace",
+        createdAt: '2024-01-01T00:00:00.000Z',
+      },
+      role: 'OWNER',
+    },
+  ],
 }
 
 function mockFetch(status: number, body: unknown) {

@@ -411,14 +411,93 @@ export const UserSchema = z.object({
 export const WorkspaceSchema = z.object({
   id: z.string(),
   name: z.string(),
-  userId: z.string(),
   createdAt: z.string(),
 })
+
+// Workspace membership
+
+export const WorkspaceMemberRoleSchema = z.enum(['OWNER', 'EDITOR', 'VIEWER'])
+export type WorkspaceMemberRole = z.infer<typeof WorkspaceMemberRoleSchema>
+
+/** A workspace the user belongs to, with their role in it. */
+export const WorkspaceMembershipSchema = z.object({
+  workspace: WorkspaceSchema,
+  role: WorkspaceMemberRoleSchema,
+})
+export type WorkspaceMembership = z.infer<typeof WorkspaceMembershipSchema>
+
+/** Full member record including user details — used in member list views. */
+export const WorkspaceMemberSchema = z.object({
+  id: z.string(),
+  workspaceId: z.string(),
+  userId: z.string(),
+  role: WorkspaceMemberRoleSchema,
+  createdAt: z.string(),
+  user: UserSchema,
+})
+export type WorkspaceMember = z.infer<typeof WorkspaceMemberSchema>
+
+/** Pending workspace invite. */
+export const WorkspaceInviteSchema = z.object({
+  id: z.string(),
+  workspaceId: z.string(),
+  email: z.string(),
+  role: WorkspaceMemberRoleSchema,
+  token: z.string(),
+  expiresAt: z.string(),
+  acceptedAt: z.string().nullable(),
+  createdAt: z.string(),
+  invitedBy: UserSchema,
+})
+export type WorkspaceInvite = z.infer<typeof WorkspaceInviteSchema>
+
+/** Pending invite summary returned by the list endpoint — token is omitted intentionally. */
+export const PendingInviteSchema = z.object({
+  id: z.string(),
+  workspaceId: z.string(),
+  email: z.string(),
+  role: WorkspaceMemberRoleSchema,
+  expiresAt: z.string(),
+  createdAt: z.string(),
+  invitedBy: UserSchema,
+})
+export type PendingInvite = z.infer<typeof PendingInviteSchema>
+
+// Workspace request schemas
+
+export const CreateWorkspaceRequestSchema = z.object({
+  name: z.string().min(1).max(100),
+})
+export const UpdateWorkspaceNameRequestSchema = z.object({
+  name: z.string().min(1, 'Name is required').max(100),
+})
+export const InviteMemberRequestSchema = z.object({
+  email: z.string().email(),
+  role: WorkspaceMemberRoleSchema,
+})
+export const UpdateMemberRoleRequestSchema = z.object({
+  role: WorkspaceMemberRoleSchema,
+})
+export const AcceptInviteRequestSchema = z.object({
+  token: z.string().min(1),
+})
+
+export type CreateWorkspaceRequest = z.infer<
+  typeof CreateWorkspaceRequestSchema
+>
+export type UpdateWorkspaceNameRequest = z.infer<
+  typeof UpdateWorkspaceNameRequestSchema
+>
+export type InviteMemberRequest = z.infer<typeof InviteMemberRequestSchema>
+export type UpdateMemberRoleRequest = z.infer<
+  typeof UpdateMemberRoleRequestSchema
+>
+export type AcceptInviteRequest = z.infer<typeof AcceptInviteRequestSchema>
 
 /** Response body for login, register, and `GET /auth/me`. */
 export const AuthResponseSchema = z.object({
   user: UserSchema,
-  workspace: WorkspaceSchema.nullable(),
+  workspaces: z.array(WorkspaceMembershipSchema),
 })
 
 export type RegisterRequest = z.infer<typeof RegisterRequestSchema>

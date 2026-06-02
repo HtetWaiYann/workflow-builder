@@ -22,17 +22,27 @@ const fakeResponse: AuthResponse = {
     name: 'Test',
     createdAt: '2024-01-01T00:00:00.000Z',
   },
-  workspace: {
-    id: 'ws-1',
-    name: "Test's Workspace",
-    userId: 'user-1',
-    createdAt: '2024-01-01T00:00:00.000Z',
-  },
+  workspaces: [
+    {
+      workspace: {
+        id: 'ws-1',
+        name: "Test's Workspace",
+        createdAt: '2024-01-01T00:00:00.000Z',
+      },
+      role: 'OWNER',
+    },
+  ],
 }
 
 beforeEach(() => {
   vi.clearAllMocks()
-  useAuthStore.setState({ user: null, workspace: null, isLoading: true })
+  useAuthStore.setState({
+    user: null,
+    workspaces: [],
+    currentWorkspace: null,
+    currentRole: null,
+    isLoading: true,
+  })
 })
 
 // Fires once on mount to restore an existing session via /auth/me. Writes the
@@ -44,7 +54,9 @@ describe('useInitAuth', () => {
 
     await waitFor(() => {
       expect(useAuthStore.getState().user).toEqual(fakeResponse.user)
-      expect(useAuthStore.getState().workspace).toEqual(fakeResponse.workspace)
+      expect(useAuthStore.getState().currentWorkspace).toEqual(
+        fakeResponse.workspaces[0].workspace
+      )
       expect(useAuthStore.getState().isLoading).toBe(false)
     })
   })

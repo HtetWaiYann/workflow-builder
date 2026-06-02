@@ -66,12 +66,22 @@ beforeEach(() => {
       name: 'Test',
       createdAt: '2024-01-01T00:00:00.000Z',
     },
-    workspace: {
+    workspaces: [
+      {
+        workspace: {
+          id: 'ws-1',
+          name: 'Acme Corp',
+          createdAt: '2024-01-01T00:00:00.000Z',
+        },
+        role: 'OWNER',
+      },
+    ],
+    currentWorkspace: {
       id: 'ws-1',
       name: 'Acme Corp',
-      userId: 'user-1',
       createdAt: '2024-01-01T00:00:00.000Z',
     },
+    currentRole: 'OWNER',
     isLoading: false,
   })
   useWorkflowStore.setState({ workflows: [], isLoading: false, error: null })

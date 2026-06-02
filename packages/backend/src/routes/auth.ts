@@ -34,17 +34,26 @@ const formatUser = (user: {
 const formatWorkspace = (ws: {
   id: string
   name: string
-  userId: string
   createdAt: Date
 }) => ({
   id: ws.id,
   name: ws.name,
-  userId: ws.userId,
   createdAt: ws.createdAt.toISOString(),
 })
 
-// POST /auth/register — Creates a new user account, hashes the password, provisions a default
-// workspace, and responds with an httpOnly JWT cookie on success.
+type MembershipRow = {
+  role: string
+  workspace: { id: string; name: string; createdAt: Date }
+}
+
+const formatMemberships = (memberships: MembershipRow[]) =>
+  memberships.map((m) => ({
+    workspace: formatWorkspace(m.workspace),
+    role: m.role,
+  }))
+
+// POST /auth/register — Creates a new user account, provisions a default workspace,
+// adds the user as OWNER, and responds with an httpOnly JWT cookie on success.
 router.post('/register', async (req, res: Response) => {
   try {
     const result = RegisterRequestSchema.safeParse(req.body)
@@ -70,14 +79,21 @@ router.post('/register', async (req, res: Response) => {
     const passwordHash = await hashPassword(password)
     const workspaceName = `${name ?? email.split('@')[0]}'s Workspace`
 
-    const user = await prisma.user.create({
-      data: {
-        email,
-        passwordHash,
-        name: name ?? null,
-        workspace: { create: { name: workspaceName } },
-      },
-      include: { workspace: true },
+    const { user, workspace } = await prisma.$transaction(async (tx) => {
+      const newUser = await tx.user.create({
+        data: { email, passwordHash, name: name ?? null },
+      })
+      const newWorkspace = await tx.workspace.create({
+        data: { name: workspaceName },
+      })
+      await tx.workspaceMember.create({
+        data: {
+          userId: newUser.id,
+          workspaceId: newWorkspace.id,
+          role: 'OWNER',
+        },
+      })
+      return { user: newUser, workspace: newWorkspace }
     })
 
     const token = signToken({ id: user.id, email: user.email })
@@ -85,7 +101,7 @@ router.post('/register', async (req, res: Response) => {
 
     res.status(201).json({
       user: formatUser(user),
-      workspace: user.workspace ? formatWorkspace(user.workspace) : null,
+      workspaces: [{ workspace: formatWorkspace(workspace), role: 'OWNER' }],
     })
   } catch (error) {
     logger.error({ err: error }, 'Registration error')
@@ -95,8 +111,8 @@ router.post('/register', async (req, res: Response) => {
   }
 })
 
-// POST /auth/login — Verifies email and password against the stored bcrypt hash and issues a
-// JWT cookie on success. Returns 401 for missing users or wrong passwords.
+// POST /auth/login — Verifies email and password against the stored bcrypt hash,
+// issues a JWT cookie on success, and returns all workspaces the user belongs to.
 router.post('/login', async (req, res: Response) => {
   try {
     const result = LoginRequestSchema.safeParse(req.body)
@@ -111,7 +127,7 @@ router.post('/login', async (req, res: Response) => {
 
     const user = await prisma.user.findUnique({
       where: { email },
-      include: { workspace: true },
+      include: { memberships: { include: { workspace: true } } },
     })
 
     if (!user || !(await verifyPassword(password, user.passwordHash))) {
@@ -126,7 +142,7 @@ router.post('/login', async (req, res: Response) => {
 
     res.json({
       user: formatUser(user),
-      workspace: user.workspace ? formatWorkspace(user.workspace) : null,
+      workspaces: formatMemberships(user.memberships),
     })
   } catch {
     res
@@ -135,8 +151,7 @@ router.post('/login', async (req, res: Response) => {
   }
 })
 
-// POST /auth/logout — Expires the JWT cookie to end the session. Safe to call when already
-// unauthenticated; requires no request body.
+// POST /auth/logout — Expires the JWT cookie to end the session.
 router.post('/logout', (_req, res: Response) => {
   res.clearCookie('token', {
     httpOnly: true,
@@ -146,13 +161,13 @@ router.post('/logout', (_req, res: Response) => {
   res.json({ success: true })
 })
 
-// GET /auth/me — Returns the authenticated user's profile and workspace. Requires a valid
-// JWT cookie; used on page load to restore an existing session.
+// GET /auth/me — Returns the authenticated user's profile and all their workspace memberships.
+// Used on page load to restore an existing session.
 router.get('/me', requireAuth, async (req: AuthRequest, res: Response) => {
   try {
     const user = await prisma.user.findUnique({
       where: { id: req.userId },
-      include: { workspace: true },
+      include: { memberships: { include: { workspace: true } } },
     })
 
     if (!user) {
@@ -162,7 +177,7 @@ router.get('/me', requireAuth, async (req: AuthRequest, res: Response) => {
 
     res.json({
       user: formatUser(user),
-      workspace: user.workspace ? formatWorkspace(user.workspace) : null,
+      workspaces: formatMemberships(user.memberships),
     })
   } catch {
     res

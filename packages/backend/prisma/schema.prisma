@@ -8,24 +8,62 @@ datasource db {
 }
 
 model User {
-  id           String     @id @default(cuid())
-  email        String     @unique
+  id           String            @id @default(cuid())
+  email        String            @unique
   passwordHash String
   name         String?
-  createdAt    DateTime   @default(now())
-  updatedAt    DateTime   @updatedAt
-  workspace    Workspace?
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+  memberships  WorkspaceMember[]
+  sentInvites  WorkspaceInvite[] @relation("InvitedBy")
 }
 
 model Workspace {
   id        String              @id @default(cuid())
   name      String
-  userId    String              @unique
-  user      User                @relation(fields: [userId], references: [id])
   createdAt DateTime            @default(now())
   updatedAt DateTime            @updatedAt
   workflows Workflow[]
   variables WorkspaceVariable[]
+  members   WorkspaceMember[]
+  invites   WorkspaceInvite[]
+}
+
+enum WorkspaceMemberRole {
+  OWNER
+  EDITOR
+  VIEWER
+}
+
+model WorkspaceMember {
+  id          String              @id @default(cuid())
+  workspaceId String
+  workspace   Workspace           @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  userId      String
+  user        User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role        WorkspaceMemberRole @default(VIEWER)
+  createdAt   DateTime            @default(now())
+
+  @@unique([workspaceId, userId])
+  @@index([userId])
+  @@index([workspaceId])
+}
+
+model WorkspaceInvite {
+  id          String              @id @default(cuid())
+  workspaceId String
+  workspace   Workspace           @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  invitedById String
+  invitedBy   User                @relation("InvitedBy", fields: [invitedById], references: [id])
+  email       String
+  role        WorkspaceMemberRole @default(EDITOR)
+  token       String              @unique
+  expiresAt   DateTime
+  acceptedAt  DateTime?
+  createdAt   DateTime            @default(now())
+
+  @@index([token])
+  @@index([workspaceId])
 }
 
 model WorkspaceVariable {

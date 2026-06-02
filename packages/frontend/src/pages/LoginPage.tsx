@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import type { FormEvent } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { Eye, EyeOff } from 'lucide-react'
 import { useAuthStore } from '@/stores/authStore'
 import { api } from '@/lib/api'
@@ -24,15 +24,17 @@ export function LoginPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const setAuth = useAuthStore((s) => s.setAuth)
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const redirect = searchParams.get('redirect') ?? '/dashboard'
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
     setError('')
     setIsSubmitting(true)
     try {
-      const { user, workspace } = await api.auth.login({ email, password })
-      setAuth(user, workspace)
-      navigate('/dashboard')
+      const { user, workspaces } = await api.auth.login({ email, password })
+      setAuth(user, workspaces)
+      navigate(redirect)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Login failed')
     } finally {
@@ -106,7 +108,7 @@ export function LoginPage() {
             <p className="text-muted-foreground text-sm">
               No account?{' '}
               <Link
-                to="/register"
+                to={`/register?redirect=${encodeURIComponent(redirect)}`}
                 className="text-foreground underline underline-offset-4"
               >
                 Register

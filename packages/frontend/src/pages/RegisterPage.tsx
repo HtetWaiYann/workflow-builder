@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import type { FormEvent } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { CircleCheck } from 'lucide-react'
 import { useAuthStore } from '@/stores/authStore'
 import { api } from '@/lib/api'
@@ -40,8 +40,12 @@ const PASSWORD_RULES = [
 ] as const
 
 export function RegisterPage() {
+  const [searchParams] = useSearchParams()
+  const redirect = searchParams.get('redirect') ?? '/dashboard'
+  const prefillEmail = searchParams.get('email') ?? ''
+
   const [name, setName] = useState('')
-  const [email, setEmail] = useState('')
+  const [email, setEmail] = useState(prefillEmail)
   const [password, setPassword] = useState('')
   const [passwordTouched, setPasswordTouched] = useState(false)
   const [error, setError] = useState('')
@@ -56,13 +60,13 @@ export function RegisterPage() {
     setError('')
     setIsSubmitting(true)
     try {
-      const { user, workspace } = await api.auth.register({
+      const { user, workspaces } = await api.auth.register({
         email,
         password,
         name: name || undefined,
       })
-      setAuth(user, workspace)
-      navigate('/dashboard')
+      setAuth(user, workspaces)
+      navigate(redirect)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Registration failed')
     } finally {
@@ -162,7 +166,7 @@ export function RegisterPage() {
             <p className="text-muted-foreground text-sm">
               Already have an account?{' '}
               <Link
-                to="/login"
+                to={`/login?redirect=${encodeURIComponent(redirect)}`}
                 className="text-foreground underline underline-offset-4"
               >
                 Sign in

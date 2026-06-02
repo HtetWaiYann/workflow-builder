@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { Navigate } from 'react-router-dom'
+import { Navigate, useSearchParams } from 'react-router-dom'
 import { useAuthStore } from '@/stores/authStore'
 
 interface PublicRouteProps {
@@ -9,11 +9,14 @@ interface PublicRouteProps {
 /**
  * Wraps public pages (login, register).
  * While auth is still initializing, renders nothing to avoid a flash redirect.
- * Once resolved, redirects authenticated users to /dashboard.
+ * Once resolved, redirects authenticated users to the `redirect` search param
+ * if present, otherwise to /dashboard. This ensures that invite links and other
+ * redirect flows are honoured even when PublicRoute re-renders after login.
  */
 export function PublicRoute({ children }: PublicRouteProps) {
   const user = useAuthStore((s) => s.user)
   const isLoading = useAuthStore((s) => s.isLoading)
+  const [searchParams] = useSearchParams()
 
   if (isLoading) {
     return (
@@ -24,7 +27,8 @@ export function PublicRoute({ children }: PublicRouteProps) {
   }
 
   if (user) {
-    return <Navigate to="/dashboard" replace />
+    const redirect = searchParams.get('redirect') ?? '/dashboard'
+    return <Navigate to={redirect} replace />
   }
 
   return <>{children}</>

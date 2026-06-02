@@ -19,6 +19,12 @@ vi.mock('@/lib/api', () => ({
 import { api } from '@/lib/api'
 const mockLogout = vi.mocked(api.auth.logout)
 
+const acmeWorkspace = {
+  id: 'ws-1',
+  name: 'Acme Corp',
+  createdAt: '2024-01-01T00:00:00.000Z',
+}
+
 function renderTopBar() {
   return render(
     <MemoryRouter>
@@ -37,12 +43,9 @@ beforeEach(() => {
       name: 'Bob',
       createdAt: '2024-01-01T00:00:00.000Z',
     },
-    workspace: {
-      id: 'ws-1',
-      name: 'Acme Corp',
-      userId: 'user-1',
-      createdAt: '2024-01-01T00:00:00.000Z',
-    },
+    workspaces: [{ workspace: acmeWorkspace, role: 'OWNER' }],
+    currentWorkspace: acmeWorkspace,
+    currentRole: 'OWNER',
     isLoading: false,
   })
 })

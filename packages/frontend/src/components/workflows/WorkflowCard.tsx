@@ -21,6 +21,7 @@ import { cn } from '@/lib/utils'
 
 interface WorkflowCardProps {
   workflow: WorkflowSummary
+  isOwner: boolean
   onOpen: (id: string) => void
   onRename: (workflow: WorkflowSummary) => void
   onDuplicate: (id: string) => void
@@ -45,6 +46,7 @@ function formatRelativeTime(iso: string): string {
 
 export function WorkflowCard({
   workflow,
+  isOwner,
   onOpen,
   onRename,
   onDuplicate,
@@ -113,14 +115,18 @@ export function WorkflowCard({
                 Activate
               </DropdownMenuItem>
             )}
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              variant="destructive"
-              onSelect={() => onDelete(workflow.id)}
-            >
-              <Trash2 />
-              Delete
-            </DropdownMenuItem>
+            {isOwner && (
+              <>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  variant="destructive"
+                  onSelect={() => onDelete(workflow.id)}
+                >
+                  <Trash2 />
+                  Delete
+                </DropdownMenuItem>
+              </>
+            )}
           </DropdownMenuContent>
         </DropdownMenuRoot>
       </div>

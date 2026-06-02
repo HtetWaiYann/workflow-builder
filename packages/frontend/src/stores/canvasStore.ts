@@ -29,6 +29,8 @@ interface CanvasStore {
   isSaving: boolean
   isLoading: boolean
   error: string | null
+  /** True when a 403 WORKFLOW_FORBIDDEN response is received from any workflow operation. */
+  accessDenied: boolean
   canUndo: boolean
   canRedo: boolean
 
@@ -123,6 +125,7 @@ export const useCanvasStore = create<CanvasStore>()(
     isSaving: false,
     isLoading: false,
     error: null,
+    accessDenied: false,
     canUndo: false,
     canRedo: false,
 
@@ -156,12 +159,16 @@ export const useCanvasStore = create<CanvasStore>()(
       } catch (err) {
         const code = (err as { code?: string }).code
         set((draft) => {
-          draft.error =
-            code === 'NOT_FOUND'
-              ? 'WORKFLOW_NOT_FOUND'
-              : err instanceof Error
-                ? err.message
-                : 'Failed to load workflow'
+          if (code === 'WORKFLOW_FORBIDDEN') {
+            draft.accessDenied = true
+          } else {
+            draft.error =
+              code === 'NOT_FOUND'
+                ? 'WORKFLOW_NOT_FOUND'
+                : err instanceof Error
+                  ? err.message
+                  : 'Failed to load workflow'
+          }
           draft.isLoading = false
         })
       }
@@ -258,9 +265,13 @@ export const useCanvasStore = create<CanvasStore>()(
               'Remove the circular connection — this workflow cannot run.',
           })
         }
-      } catch {
+      } catch (err) {
+        const code = (err as { code?: string }).code
         set((draft) => {
           draft.isSaving = false
+          if (code === 'WORKFLOW_FORBIDDEN') {
+            draft.accessDenied = true
+          }
         })
       }
     },
@@ -293,8 +304,13 @@ export const useCanvasStore = create<CanvasStore>()(
             draft.workflowStatus = workflow.status
           })
         }
-      } catch {
-        // Status unchanged on failure
+      } catch (err) {
+        const code = (err as { code?: string }).code
+        if (code === 'WORKFLOW_FORBIDDEN') {
+          set((draft) => {
+            draft.accessDenied = true
+          })
+        }
       }
     },
 
@@ -377,6 +393,7 @@ export const useCanvasStore = create<CanvasStore>()(
         draft.isSaving = false
         draft.isLoading = false
         draft.error = null
+        draft.accessDenied = false
         draft.canUndo = false
         draft.canRedo = false
       })

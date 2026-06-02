@@ -3,12 +3,16 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { useInitAuth } from '@/hooks/useInitAuth'
 import { useThemeStore } from '@/stores/themeStore'
 import { ProtectedRoute } from '@/components/ProtectedRoute'
+import { WorkspaceRoute } from '@/components/WorkspaceRoute'
 import { PublicRoute } from '@/components/PublicRoute'
 import { LoginPage } from '@/pages/LoginPage'
 import { RegisterPage } from '@/pages/RegisterPage'
 import { DashboardPage } from '@/pages/DashboardPage'
 import { CanvasPage } from '@/pages/CanvasPage'
 import { VariablesPage } from '@/pages/VariablesPage'
+import { WorkspaceSettingsPage } from '@/pages/WorkspaceSettingsPage'
+import { AcceptInvitePage } from '@/pages/AcceptInvitePage'
+import { CreateFirstWorkspacePage } from '@/pages/CreateFirstWorkspacePage'
 import { Toaster } from '@/components/ui/sonner'
 
 function ThemeApplier() {
@@ -54,29 +58,46 @@ function AppRoutes() {
         }
       />
       <Route
-        path="/workflows"
+        path="/workspaces/new"
         element={
           <ProtectedRoute>
-            <DashboardPage />
+            <CreateFirstWorkspacePage />
           </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/workflows"
+        element={
+          <WorkspaceRoute>
+            <DashboardPage />
+          </WorkspaceRoute>
         }
       />
       <Route
         path="/workflows/:id"
         element={
-          <ProtectedRoute>
+          <WorkspaceRoute>
             <CanvasPage />
-          </ProtectedRoute>
+          </WorkspaceRoute>
         }
       />
       <Route
         path="/settings/variables"
         element={
-          <ProtectedRoute>
+          <WorkspaceRoute>
             <VariablesPage />
-          </ProtectedRoute>
+          </WorkspaceRoute>
         }
       />
+      <Route
+        path="/workspaces/:workspaceId/settings"
+        element={
+          <WorkspaceRoute>
+            <WorkspaceSettingsPage />
+          </WorkspaceRoute>
+        }
+      />
+      <Route path="/invites/:token" element={<AcceptInvitePage />} />
       <Route path="/dashboard" element={<Navigate to="/workflows" replace />} />
       <Route path="/" element={<Navigate to="/workflows" replace />} />
       <Route path="*" element={<Navigate to="/workflows" replace />} />
