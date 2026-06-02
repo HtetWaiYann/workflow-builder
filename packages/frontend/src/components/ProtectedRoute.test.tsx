@@ -13,7 +13,13 @@ const fakeUser: User = {
 }
 
 beforeEach(() => {
-  useAuthStore.setState({ user: null, workspace: null, isLoading: true })
+  useAuthStore.setState({
+    user: null,
+    workspaces: [],
+    currentWorkspace: null,
+    currentRole: null,
+    isLoading: true,
+  })
 })
 
 function renderRoute(children = <div>protected content</div>) {
@@ -34,14 +40,26 @@ describe('ProtectedRoute', () => {
   })
 
   it('redirects to /login when user is null and not loading', () => {
-    useAuthStore.setState({ user: null, workspace: null, isLoading: false })
+    useAuthStore.setState({
+      user: null,
+      workspaces: [],
+      currentWorkspace: null,
+      currentRole: null,
+      isLoading: false,
+    })
     const { container } = renderRoute()
     expect(screen.queryByText('protected content')).not.toBeInTheDocument()
     expect(container.firstChild).toBeNull()
   })
 
   it('renders children when user is authenticated', () => {
-    useAuthStore.setState({ user: fakeUser, workspace: null, isLoading: false })
+    useAuthStore.setState({
+      user: fakeUser,
+      workspaces: [],
+      currentWorkspace: null,
+      currentRole: null,
+      isLoading: false,
+    })
     renderRoute()
     expect(screen.getByText('protected content')).toBeInTheDocument()
   })

@@ -15,6 +15,7 @@ import { logger } from '../lib/logger'
 import { requireAuth } from '../middleware/auth'
 import type { AuthRequest } from '../middleware/auth'
 import { requireWorkspace } from '../middleware/workspace'
+import { requireRole } from '../middleware/role'
 import executionSubRouter from './executions'
 import {
   scheduleCronWorkflow,
@@ -77,8 +78,31 @@ const formatWorkflowSummary = (
 
 // ── Ownership helper ──────────────────────────────────────────────────────────
 
-async function getOwnedWorkflow(workflowId: string, workspaceId: string) {
-  return prisma.workflow.findFirst({ where: { id: workflowId, workspaceId } })
+type WorkflowRow = Awaited<ReturnType<typeof prisma.workflow.findUnique>> &
+  object
+
+type GetWorkflowResult =
+  | { status: 'ok'; workflow: WorkflowRow }
+  | { status: 'not_found' }
+  | { status: 'forbidden' }
+
+/**
+ * Looks up a workflow by id, then verifies it belongs to the given workspace.
+ * Returns a discriminated result so callers can send the appropriate HTTP response:
+ * - `not_found` → 404 (workflow doesn't exist)
+ * - `forbidden` → 403 `WORKFLOW_FORBIDDEN` (exists but belongs to another workspace)
+ * - `ok` → proceed with `workflow`
+ */
+async function getOwnedWorkflow(
+  workflowId: string,
+  workspaceId: string
+): Promise<GetWorkflowResult> {
+  const workflow = await prisma.workflow.findUnique({
+    where: { id: workflowId },
+  })
+  if (!workflow) return { status: 'not_found' }
+  if (workflow.workspaceId !== workspaceId) return { status: 'forbidden' }
+  return { status: 'ok', workflow }
 }
 
 // ── Routes ────────────────────────────────────────────────────────────────────
@@ -109,52 +133,62 @@ router.get('/', async (req: AuthRequest, res: Response): Promise<void> => {
   }
 })
 
-// POST /workflows — Creates a new DRAFT workflow with empty nodes and edges. Requires a
-// non-empty name in the request body.
-router.post('/', async (req: AuthRequest, res: Response): Promise<void> => {
-  const parsed = CreateWorkflowRequestSchema.safeParse(req.body)
-  if (!parsed.success) {
-    res.status(400).json({
-      error: parsed.error.issues[0]?.message ?? 'Invalid request',
-      code: 'VALIDATION_ERROR',
-    })
-    return
-  }
+// POST /workflows — Creates a new DRAFT workflow with empty nodes and edges. EDITOR or OWNER only.
+router.post(
+  '/',
+  requireRole('EDITOR', 'OWNER'),
+  async (req: AuthRequest, res: Response): Promise<void> => {
+    const parsed = CreateWorkflowRequestSchema.safeParse(req.body)
+    if (!parsed.success) {
+      res.status(400).json({
+        error: parsed.error.issues[0]?.message ?? 'Invalid request',
+        code: 'VALIDATION_ERROR',
+      })
+      return
+    }
 
-  try {
-    const workflow = await prisma.workflow.create({
-      data: {
-        workspaceId: req.workspaceId!,
-        name: parsed.data.name,
-        status: 'DRAFT',
-        nodes: [],
-        edges: [],
-      },
-    })
-    res.status(201).json({ workflow: formatWorkflow(workflow) })
-  } catch (err) {
-    logger.error({ err }, 'POST /workflows failed')
-    res
-      .status(500)
-      .json({ error: 'Internal server error', code: 'INTERNAL_ERROR' })
+    try {
+      const workflow = await prisma.workflow.create({
+        data: {
+          workspaceId: req.workspaceId!,
+          name: parsed.data.name,
+          status: 'DRAFT',
+          nodes: [],
+          edges: [],
+        },
+      })
+      res.status(201).json({ workflow: formatWorkflow(workflow) })
+    } catch (err) {
+      logger.error({ err }, 'POST /workflows failed')
+      res
+        .status(500)
+        .json({ error: 'Internal server error', code: 'INTERNAL_ERROR' })
+    }
   }
-})
+)
 
 // GET /workflows/:workflowId — Fetches a single workflow by id, including the full nodes and
-// edges arrays. Returns 404 if not found or not owned by the caller's workspace.
+// edges arrays. Returns 404 if the workflow does not exist, 403 if it belongs to a different workspace.
 router.get(
   '/:workflowId',
   async (req: AuthRequest, res: Response): Promise<void> => {
     try {
-      const workflow = await getOwnedWorkflow(
+      const result = await getOwnedWorkflow(
         req.params.workflowId,
         req.workspaceId!
       )
-      if (!workflow) {
+      if (result.status === 'not_found') {
         res.status(404).json({ error: 'Workflow not found', code: 'NOT_FOUND' })
         return
       }
-      res.json({ workflow: formatWorkflow(workflow) })
+      if (result.status === 'forbidden') {
+        res.status(403).json({
+          error: 'You do not have access to this workflow',
+          code: 'WORKFLOW_FORBIDDEN',
+        })
+        return
+      }
+      res.json({ workflow: formatWorkflow(result.workflow) })
     } catch (err) {
       logger.error({ err }, 'GET /workflows/:id failed')
       res
@@ -165,9 +199,10 @@ router.get(
 )
 
 // PATCH /workflows/:workflowId — Renames the workflow using the RenameWorkflowRequest schema.
-// Returns a workflow summary (no nodes/edges) with the updated name.
+// Returns a workflow summary (no nodes/edges) with the updated name. EDITOR or OWNER only.
 router.patch(
   '/:workflowId',
+  requireRole('EDITOR', 'OWNER'),
   async (req: AuthRequest, res: Response): Promise<void> => {
     const parsed = RenameWorkflowRequestSchema.safeParse(req.body)
     if (!parsed.success) {
@@ -179,12 +214,19 @@ router.patch(
     }
 
     try {
-      const existing = await getOwnedWorkflow(
+      const result = await getOwnedWorkflow(
         req.params.workflowId,
         req.workspaceId!
       )
-      if (!existing) {
+      if (result.status === 'not_found') {
         res.status(404).json({ error: 'Workflow not found', code: 'NOT_FOUND' })
+        return
+      }
+      if (result.status === 'forbidden') {
+        res.status(403).json({
+          error: 'You do not have access to this workflow',
+          code: 'WORKFLOW_FORBIDDEN',
+        })
         return
       }
 
@@ -203,9 +245,10 @@ router.patch(
 )
 
 // PUT /workflows/:workflowId/graph — Saves the canvas by replacing the workflow's nodes and
-// edges in one atomic update. Returns the full workflow with the new graph.
+// edges in one atomic update. Returns the full workflow with the new graph. EDITOR or OWNER only.
 router.put(
   '/:workflowId/graph',
+  requireRole('EDITOR', 'OWNER'),
   async (req: AuthRequest, res: Response): Promise<void> => {
     const parsed = SaveWorkflowRequestSchema.safeParse(req.body)
     if (!parsed.success) {
@@ -217,12 +260,19 @@ router.put(
     }
 
     try {
-      const existing = await getOwnedWorkflow(
+      const result = await getOwnedWorkflow(
         req.params.workflowId,
         req.workspaceId!
       )
-      if (!existing) {
+      if (result.status === 'not_found') {
         res.status(404).json({ error: 'Workflow not found', code: 'NOT_FOUND' })
+        return
+      }
+      if (result.status === 'forbidden') {
+        res.status(403).json({
+          error: 'You do not have access to this workflow',
+          code: 'WORKFLOW_FORBIDDEN',
+        })
         return
       }
 
@@ -244,17 +294,25 @@ router.put(
 )
 
 // POST /workflows/:workflowId/activate — Transitions the workflow's status to ACTIVE, enabling
-// it to be triggered by cron or webhook events.
+// it to be triggered by cron or webhook events. EDITOR or OWNER only.
 router.post(
   '/:workflowId/activate',
+  requireRole('EDITOR', 'OWNER'),
   async (req: AuthRequest, res: Response): Promise<void> => {
     try {
-      const existing = await getOwnedWorkflow(
+      const result = await getOwnedWorkflow(
         req.params.workflowId,
         req.workspaceId!
       )
-      if (!existing) {
+      if (result.status === 'not_found') {
         res.status(404).json({ error: 'Workflow not found', code: 'NOT_FOUND' })
+        return
+      }
+      if (result.status === 'forbidden') {
+        res.status(403).json({
+          error: 'You do not have access to this workflow',
+          code: 'WORKFLOW_FORBIDDEN',
+        })
         return
       }
 
@@ -281,17 +339,25 @@ router.post(
 )
 
 // POST /workflows/:workflowId/deactivate — Transitions the workflow's status to INACTIVE,
-// stopping it from accepting new trigger events.
+// stopping it from accepting new trigger events. EDITOR or OWNER only.
 router.post(
   '/:workflowId/deactivate',
+  requireRole('EDITOR', 'OWNER'),
   async (req: AuthRequest, res: Response): Promise<void> => {
     try {
-      const existing = await getOwnedWorkflow(
+      const result = await getOwnedWorkflow(
         req.params.workflowId,
         req.workspaceId!
       )
-      if (!existing) {
+      if (result.status === 'not_found') {
         res.status(404).json({ error: 'Workflow not found', code: 'NOT_FOUND' })
+        return
+      }
+      if (result.status === 'forbidden') {
+        res.status(403).json({
+          error: 'You do not have access to this workflow',
+          code: 'WORKFLOW_FORBIDDEN',
+        })
         return
       }
 
@@ -318,27 +384,35 @@ router.post(
 )
 
 // POST /workflows/:workflowId/duplicate — Creates a DRAFT copy of the source workflow with
-// the same nodes and edges, appending "(copy)" to the name.
+// the same nodes and edges, appending "(copy)" to the name. EDITOR or OWNER only.
 router.post(
   '/:workflowId/duplicate',
+  requireRole('EDITOR', 'OWNER'),
   async (req: AuthRequest, res: Response): Promise<void> => {
     try {
-      const source = await getOwnedWorkflow(
+      const result = await getOwnedWorkflow(
         req.params.workflowId,
         req.workspaceId!
       )
-      if (!source) {
+      if (result.status === 'not_found') {
         res.status(404).json({ error: 'Workflow not found', code: 'NOT_FOUND' })
+        return
+      }
+      if (result.status === 'forbidden') {
+        res.status(403).json({
+          error: 'You do not have access to this workflow',
+          code: 'WORKFLOW_FORBIDDEN',
+        })
         return
       }
 
       const copy = await prisma.workflow.create({
         data: {
           workspaceId: req.workspaceId!,
-          name: `${source.name} (copy)`,
+          name: `${result.workflow.name} (copy)`,
           status: 'DRAFT',
-          nodes: toInputJson(source.nodes ?? []),
-          edges: toInputJson(source.edges ?? []),
+          nodes: toInputJson(result.workflow.nodes ?? []),
+          edges: toInputJson(result.workflow.edges ?? []),
         },
       })
       res.status(201).json({ workflow: formatWorkflow(copy) })
@@ -352,9 +426,10 @@ router.post(
 )
 
 // PATCH /workflows/:workflowId/name — Updates only the workflow's display name. Returns a
-// lean { data: { id, name } } payload used by the canvas toolbar for optimistic updates.
+// lean { data: { id, name } } payload used by the canvas toolbar for optimistic updates. EDITOR or OWNER only.
 router.patch(
   '/:workflowId/name',
+  requireRole('EDITOR', 'OWNER'),
   async (req: AuthRequest, res: Response): Promise<void> => {
     const parsed = z
       .object({ name: z.string().min(1).max(255) })
@@ -368,12 +443,19 @@ router.patch(
     }
 
     try {
-      const existing = await getOwnedWorkflow(
+      const result = await getOwnedWorkflow(
         req.params.workflowId,
         req.workspaceId!
       )
-      if (!existing) {
+      if (result.status === 'not_found') {
         res.status(404).json({ error: 'Workflow not found', code: 'NOT_FOUND' })
+        return
+      }
+      if (result.status === 'forbidden') {
+        res.status(403).json({
+          error: 'You do not have access to this workflow',
+          code: 'WORKFLOW_FORBIDDEN',
+        })
         return
       }
 
@@ -392,17 +474,25 @@ router.patch(
 )
 
 // DELETE /workflows/:workflowId — Permanently removes the workflow and all associated data.
-// Responds with 204 No Content on success.
+// Responds with 204 No Content on success. OWNER only.
 router.delete(
   '/:workflowId',
+  requireRole('OWNER'),
   async (req: AuthRequest, res: Response): Promise<void> => {
     try {
-      const existing = await getOwnedWorkflow(
+      const result = await getOwnedWorkflow(
         req.params.workflowId,
         req.workspaceId!
       )
-      if (!existing) {
+      if (result.status === 'not_found') {
         res.status(404).json({ error: 'Workflow not found', code: 'NOT_FOUND' })
+        return
+      }
+      if (result.status === 'forbidden') {
+        res.status(403).json({
+          error: 'You do not have access to this workflow',
+          code: 'WORKFLOW_FORBIDDEN',
+        })
         return
       }
 

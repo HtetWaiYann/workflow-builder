@@ -11,7 +11,17 @@ import {
   DropdownMenuSeparator,
   DropdownMenuLabel,
 } from '@/components/ui/dropdown-menu'
-import { LogOut, Settings, Sun, Moon, Monitor, Check } from 'lucide-react'
+import {
+  LogOut,
+  Settings,
+  Sun,
+  Moon,
+  Monitor,
+  Check,
+  ChevronDown,
+  Plus,
+  Variable
+} from 'lucide-react'
 
 const THEME_ICONS: Record<Theme, typeof Sun> = {
   light: Sun,
@@ -27,7 +37,10 @@ const THEME_OPTIONS: { value: Theme; label: string; Icon: typeof Sun }[] = [
 
 export function TopBar() {
   const user = useAuthStore((s) => s.user)
-  const workspace = useAuthStore((s) => s.workspace)
+  const workspaces = useAuthStore((s) => s.workspaces)
+  const currentWorkspace = useAuthStore((s) => s.currentWorkspace)
+  const currentRole = useAuthStore((s) => s.currentRole)
+  const switchWorkspace = useAuthStore((s) => s.switchWorkspace)
   const clearAuth = useAuthStore((s) => s.clearAuth)
   const navigate = useNavigate()
   const theme = useThemeStore((s) => s.theme)
@@ -35,7 +48,7 @@ export function TopBar() {
 
   const ThemeIcon = THEME_ICONS[theme]
 
-  const workspaceLetter = (workspace?.name ?? user?.email ?? 'W')
+  const workspaceLetter = (currentWorkspace?.name ?? user?.email ?? 'W')
     .charAt(0)
     .toUpperCase()
 
@@ -52,21 +65,55 @@ export function TopBar() {
     }
   }
 
+  function handleSwitchWorkspace(workspaceId: string) {
+    switchWorkspace(workspaceId)
+    navigate('/workflows')
+  }
+
   return (
     <header className="flex h-12 shrink-0 items-center gap-3 border-b px-4">
-      {/* Workspace badge — click to go to workflows list */}
-      <button
-        onClick={() => navigate('/workflows')}
-        className="hover:bg-accent focus-visible:ring-ring flex items-center gap-2.5 rounded-md px-1.5 py-1 transition-colors focus-visible:ring-2 focus-visible:outline-none"
-        aria-label="Go to workflows"
-      >
-        <div className="bg-primary text-primary-foreground flex size-7 items-center justify-center rounded-md text-xs font-bold">
-          {workspaceLetter}
-        </div>
-        <span className="text-sm font-medium">
-          {workspace?.name ?? 'My Workspace'}
-        </span>
-      </button>
+      {/* Workspace switcher dropdown */}
+      <DropdownMenuRoot>
+        <DropdownMenuTrigger asChild>
+          <button
+            className="hover:bg-accent focus-visible:ring-ring flex items-center gap-2 rounded-md px-1.5 py-1 transition-colors focus-visible:ring-2 focus-visible:outline-none"
+            aria-label="Switch workspace"
+          >
+            <div className="bg-primary text-primary-foreground flex size-7 items-center justify-center rounded-md text-xs font-bold">
+              {workspaceLetter}
+            </div>
+            <span className="text-sm font-medium">
+              {currentWorkspace?.name ?? 'My Workspace'}
+            </span>
+            <ChevronDown className="text-muted-foreground size-3.5" />
+          </button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="start" className="w-56">
+          <DropdownMenuLabel className="text-muted-foreground text-xs font-normal">
+            Workspaces
+          </DropdownMenuLabel>
+          {workspaces.map(({ workspace, role }) => (
+            <DropdownMenuItem
+              key={workspace.id}
+              onSelect={() => handleSwitchWorkspace(workspace.id)}
+            >
+              <div className="bg-primary text-primary-foreground flex size-5 shrink-0 items-center justify-center rounded text-[10px] font-bold">
+                {workspace.name.charAt(0).toUpperCase()}
+              </div>
+              <span className="min-w-0 flex-1 truncate">{workspace.name}</span>
+              <span className="text-muted-foreground text-xs">{role}</span>
+              {workspace.id === currentWorkspace?.id && (
+                <Check className="size-3.5" />
+              )}
+            </DropdownMenuItem>
+          ))}
+          <DropdownMenuSeparator />
+          <DropdownMenuItem onSelect={() => navigate('/workspaces/new')}>
+            <Plus className="size-4" />
+            New workspace
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenuRoot>
 
       {/* Spacer */}
       <div className="flex-1" />
@@ -102,10 +149,25 @@ export function TopBar() {
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-52">
           <DropdownMenuLabel>{user?.name ?? user?.email}</DropdownMenuLabel>
+          {currentRole && (
+            <DropdownMenuLabel className="text-muted-foreground py-0 text-xs font-normal">
+              {currentRole} · {currentWorkspace?.name}
+            </DropdownMenuLabel>
+          )}
           <DropdownMenuSeparator />
+          {currentWorkspace && (
+            <DropdownMenuItem
+              onSelect={() =>
+                navigate(`/workspaces/${currentWorkspace.id}/settings`)
+              }
+            >
+              <Settings/>
+              Workspace Settings
+            </DropdownMenuItem>
+          )}
           <DropdownMenuItem onSelect={() => navigate('/settings/variables')}>
-            <Settings />
-            Workspace Variables
+            <Variable />
+            Environment Variables
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem variant="destructive" onSelect={handleLogout}>

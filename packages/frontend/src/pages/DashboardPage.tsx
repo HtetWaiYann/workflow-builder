@@ -6,6 +6,7 @@ import { HistoryPanel } from '@/components/panels/HistoryPanel'
 import { toast } from 'sonner'
 import type { WorkflowSummary } from '@workflow-builder/shared'
 import { useWorkflowStore } from '@/stores/workflowStore'
+import { useAuthStore } from '@/stores/authStore'
 import { api } from '@/lib/api'
 import { TopBar } from '@/components/TopBar'
 import { WorkflowCard } from '@/components/workflows/WorkflowCard'
@@ -27,6 +28,8 @@ export function DashboardPage() {
     setError,
   } = useWorkflowStore()
 
+  const currentWorkspaceId = useAuthStore((s) => s.currentWorkspace?.id)
+  const currentRole = useAuthStore((s) => s.currentRole)
   const openHistoryPanel = useExecutionStore((s) => s.openHistoryPanel)
 
   const [search, setSearch] = React.useState('')
@@ -51,7 +54,7 @@ export function DashboardPage() {
           err instanceof Error ? err.message : 'Failed to load workflows'
         )
       )
-  }, [setWorkflows, setLoading, setError])
+  }, [setWorkflows, setLoading, setError, currentWorkspaceId])
 
   const filtered = React.useMemo(() => {
     const q = search.trim().toLowerCase()
@@ -190,6 +193,7 @@ export function DashboardPage() {
                 <WorkflowCard
                   key={workflow.id}
                   workflow={workflow}
+                  isOwner={currentRole === 'OWNER'}
                   onOpen={(id) => navigate(`/workflows/${id}`)}
                   onRename={setRenamingWorkflow}
                   onDuplicate={handleDuplicate}

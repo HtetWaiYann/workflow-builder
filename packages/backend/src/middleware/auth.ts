@@ -5,6 +5,8 @@ export interface AuthRequest extends Request {
   userId?: string
   userEmail?: string
   workspaceId?: string
+  /** WorkspaceMemberRole value set by requireWorkspace after verifying membership. */
+  memberRole?: string
 }
 
 /**

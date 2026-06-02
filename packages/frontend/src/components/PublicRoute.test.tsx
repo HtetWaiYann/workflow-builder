@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
-import { MemoryRouter } from 'react-router-dom'
+import { MemoryRouter, Routes, Route } from 'react-router-dom'
 import { PublicRoute } from '@/components/PublicRoute'
 import { useAuthStore } from '@/stores/authStore'
 import type { User } from '@workflow-builder/shared'
@@ -13,13 +13,26 @@ const fakeUser: User = {
 }
 
 beforeEach(() => {
-  useAuthStore.setState({ user: null, workspace: null, isLoading: true })
+  useAuthStore.setState({
+    user: null,
+    workspaces: [],
+    currentWorkspace: null,
+    currentRole: null,
+    isLoading: true,
+  })
 })
 
-function renderRoute(children = <div>public content</div>) {
+function renderRoute(
+  initialPath = '/login',
+  children = <div>public content</div>
+) {
   return render(
-    <MemoryRouter>
-      <PublicRoute>{children}</PublicRoute>
+    <MemoryRouter initialEntries={[initialPath]}>
+      <Routes>
+        <Route path="/login" element={<PublicRoute>{children}</PublicRoute>} />
+        <Route path="/dashboard" element={<div>dashboard</div>} />
+        <Route path="/invites/:token" element={<div>invite page</div>} />
+      </Routes>
     </MemoryRouter>
   )
 }
@@ -33,15 +46,40 @@ describe('PublicRoute', () => {
   })
 
   it('renders children when the user is not authenticated', () => {
-    useAuthStore.setState({ user: null, workspace: null, isLoading: false })
+    useAuthStore.setState({
+      user: null,
+      workspaces: [],
+      currentWorkspace: null,
+      currentRole: null,
+      isLoading: false,
+    })
     renderRoute()
     expect(screen.getByText('public content')).toBeInTheDocument()
   })
 
-  it('redirects away and hides children when the user is already logged in', () => {
-    useAuthStore.setState({ user: fakeUser, workspace: null, isLoading: false })
-    const { container } = renderRoute()
+  it('redirects to /dashboard when authenticated with no redirect param', () => {
+    useAuthStore.setState({
+      user: fakeUser,
+      workspaces: [],
+      currentWorkspace: null,
+      currentRole: null,
+      isLoading: false,
+    })
+    renderRoute('/login')
     expect(screen.queryByText('public content')).not.toBeInTheDocument()
-    expect(container.firstChild).toBeNull()
+    expect(screen.getByText('dashboard')).toBeInTheDocument()
+  })
+
+  it('redirects to the redirect param when authenticated', () => {
+    useAuthStore.setState({
+      user: fakeUser,
+      workspaces: [],
+      currentWorkspace: null,
+      currentRole: null,
+      isLoading: false,
+    })
+    renderRoute('/login?redirect=/invites/abc123')
+    expect(screen.queryByText('public content')).not.toBeInTheDocument()
+    expect(screen.getByText('invite page')).toBeInTheDocument()
   })
 })

@@ -27,7 +27,7 @@ const fakeResponse: AuthResponse = {
     name: 'Test',
     createdAt: '2024-01-01T00:00:00.000Z',
   },
-  workspace: null,
+  workspaces: [],
 }
 
 function renderPage() {
@@ -40,7 +40,13 @@ function renderPage() {
 
 beforeEach(() => {
   vi.clearAllMocks()
-  useAuthStore.setState({ user: null, workspace: null, isLoading: false })
+  useAuthStore.setState({
+    user: null,
+    workspaces: [],
+    currentWorkspace: null,
+    currentRole: null,
+    isLoading: false,
+  })
 })
 
 // Sign-in form that posts credentials to the API, stores the authenticated user

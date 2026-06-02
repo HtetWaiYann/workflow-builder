@@ -14,7 +14,7 @@ export function useInitAuth() {
   useEffect(() => {
     api.auth
       .me()
-      .then(({ user, workspace }) => setAuth(user, workspace))
+      .then(({ user, workspaces }) => setAuth(user, workspaces))
       .catch(() => clearAuth())
   }, [setAuth, clearAuth])
 }

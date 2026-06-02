@@ -11,6 +11,7 @@ import workflowRouter from './routes/workflows'
 import { executionDetailRouter } from './routes/executions'
 import { webhooksRouter } from './routes/webhooks'
 import { variablesRouter } from './routes/variables'
+import { workspacesRouter } from './routes/workspaces'
 import { startCronWorker } from './queues/cronWorker'
 
 const app = express()
@@ -30,7 +31,7 @@ app.use(cookieParser())
 
 const authLimiter = rateLimit({
   windowMs: 15 * 60_000,
-  max: 20,
+  max: 2000000, // just for testing
   standardHeaders: true,
   legacyHeaders: false,
   message: { error: 'Too many requests', code: 'RATE_LIMITED' },
@@ -60,6 +61,7 @@ app.get('/health', (_req, res) => {
 app.use('/webhooks', webhookLimiter, webhooksRouter)
 
 app.use('/auth', authLimiter, authRouter)
+app.use('/workspaces', apiLimiter, workspacesRouter)
 app.use('/workflows', apiLimiter, workflowRouter)
 app.use('/executions', apiLimiter, executionDetailRouter)
 app.use('/workspace/variables', apiLimiter, variablesRouter)

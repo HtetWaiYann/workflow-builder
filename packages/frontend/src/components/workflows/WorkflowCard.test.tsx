@@ -24,9 +24,13 @@ const handlers = {
   onViewHistory: vi.fn(),
 }
 
-function renderCard(overrides: Partial<WorkflowSummary> = {}) {
+function renderCard(overrides: Partial<WorkflowSummary> = {}, isOwner = true) {
   return render(
-    <WorkflowCard workflow={{ ...fakeWorkflow, ...overrides }} {...handlers} />
+    <WorkflowCard
+      workflow={{ ...fakeWorkflow, ...overrides }}
+      isOwner={isOwner}
+      {...handlers}
+    />
   )
 }
 
@@ -82,5 +86,11 @@ describe('WorkflowCard', () => {
     await userEvent.click(screen.getByText('Run History'))
     expect(handlers.onViewHistory).toHaveBeenCalledWith('wf-1')
     expect(handlers.onOpen).not.toHaveBeenCalled()
+  })
+
+  it('hides Delete from the menu when the user is not an owner', async () => {
+    renderCard({}, false)
+    await userEvent.click(screen.getByRole('button'))
+    expect(screen.queryByText('Delete')).not.toBeInTheDocument()
   })
 })

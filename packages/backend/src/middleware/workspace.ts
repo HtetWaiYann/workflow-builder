@@ -3,26 +3,45 @@ import { prisma } from '../db/client'
 import type { AuthRequest } from './auth'
 
 /**
- * Express middleware that looks up the workspace for the authenticated user
- * and attaches `workspaceId` to the request.
+ * Express middleware that verifies the authenticated user is a member of the
+ * workspace identified by the `X-Workspace-ID` request header, then attaches
+ * `workspaceId` and `memberRole` to the request object.
+ *
  * Must run after `requireAuth`.
- * Responds with 403 if the user has no workspace.
+ *
+ * @throws 400 if the header is absent.
+ * @throws 403 if the user has no membership in the given workspace.
  */
 export async function requireWorkspace(
   req: AuthRequest,
   res: Response,
   next: NextFunction
 ): Promise<void> {
-  const workspace = await prisma.workspace.findUnique({
-    where: { userId: req.userId },
-    select: { id: true },
-  })
+  const workspaceId = req.headers['x-workspace-id'] as string | undefined
 
-  if (!workspace) {
-    res.status(403).json({ error: 'No workspace found', code: 'NO_WORKSPACE' })
+  if (!workspaceId) {
+    res
+      .status(400)
+      .json({
+        error: 'X-Workspace-ID header is required',
+        code: 'MISSING_WORKSPACE',
+      })
     return
   }
 
-  req.workspaceId = workspace.id
+  const member = await prisma.workspaceMember.findUnique({
+    where: { workspaceId_userId: { workspaceId, userId: req.userId! } },
+    select: { role: true },
+  })
+
+  if (!member) {
+    res
+      .status(403)
+      .json({ error: 'No access to this workspace', code: 'FORBIDDEN' })
+    return
+  }
+
+  req.workspaceId = workspaceId
+  req.memberRole = member.role
   next()
 }
