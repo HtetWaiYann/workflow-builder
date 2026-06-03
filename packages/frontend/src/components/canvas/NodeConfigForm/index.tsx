@@ -17,6 +17,8 @@ interface NodeConfigFormProps {
   nodeType: NodeType
   config: Record<string, unknown>
   onChange: (config: Record<string, unknown>) => void
+  workflowId?: string
+  nodeId?: string
 }
 
 /**
@@ -24,17 +26,28 @@ interface NodeConfigFormProps {
  * @param nodeType - The type of node being configured.
  * @param config - Current config object stored in node.data.config.
  * @param onChange - Called with the full updated config on any field change.
+ * @param workflowId - Used by webhook-trigger for HMAC secret management.
+ * @param nodeId - Used by webhook-trigger for HMAC secret management.
  */
 export function NodeConfigForm({
   nodeType,
   config,
   onChange,
+  workflowId,
+  nodeId,
 }: NodeConfigFormProps) {
   switch (nodeType) {
     case 'manual-trigger':
       return <NoConfig />
     case 'webhook-trigger':
-      return <WebhookTriggerConfig config={config} onChange={onChange} />
+      return (
+        <WebhookTriggerConfig
+          config={config}
+          onChange={onChange}
+          workflowId={workflowId}
+          nodeId={nodeId}
+        />
+      )
     case 'cron-trigger':
       return <CronTriggerConfig config={config} onChange={onChange} />
     case 'http-request':

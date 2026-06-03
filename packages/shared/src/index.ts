@@ -376,6 +376,24 @@ export type UpdateWorkspaceVariableRequest = z.infer<
   typeof UpdateWorkspaceVariableRequestSchema
 >
 
+// Webhook HMAC secret schemas
+
+/** Status response for GET — hint is shown, plaintext is never returned after creation. */
+export const WebhookSecretStatusSchema = z.object({
+  exists: z.boolean(),
+  hint: z.string().nullable(),
+})
+export type WebhookSecretStatus = z.infer<typeof WebhookSecretStatusSchema>
+
+/** One-time response for POST generate/regenerate — secret must be copied immediately. */
+export const WebhookSecretGeneratedSchema = z.object({
+  secret: z.string(),
+  hint: z.string(),
+})
+export type WebhookSecretGenerated = z.infer<
+  typeof WebhookSecretGeneratedSchema
+>
+
 // Auth schemas
 
 /** Request body for `POST /auth/register`. */

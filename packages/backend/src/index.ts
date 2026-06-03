@@ -24,7 +24,14 @@ app.set('trust proxy', 1)
 
 app.use(helmet())
 app.use(cors({ origin: CORS_ORIGIN, credentials: true }))
-app.use(express.json())
+app.use(
+  express.json({
+    // Stash raw bytes on the request for webhook HMAC signature verification.
+    verify: (req, _res, buf) => {
+      ;(req as typeof req & { rawBody?: Buffer }).rawBody = buf
+    },
+  })
+)
 app.use(cookieParser())
 
 // ── Rate limiters ─────────────────────────────────────────────────────────────
