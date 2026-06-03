@@ -17,6 +17,9 @@ vi.mock('@/components/canvas/ConfigPanel', () => ({
 vi.mock('@/components/canvas/RunPanel', () => ({
   RunPanel: () => <div data-testid="run-panel" />,
 }))
+vi.mock('@/components/panels/HistoryPanel', () => ({
+  HistoryPanel: () => <div data-testid="history-panel" />,
+}))
 
 vi.mock('sonner', () => ({
   toast: { error: vi.fn(), warning: vi.fn() },
@@ -40,10 +43,14 @@ const mockReset = vi.fn()
 const mockUndo = vi.fn()
 const mockRedo = vi.fn()
 const mockResetExecution = vi.fn()
+const mockSwitchWorkspace = vi.fn()
 
 const canvasState = {
   isLoading: false,
   error: null as string | null,
+  accessDenied: false,
+  nodes: [] as { id: string }[],
+  workflowName: null as string | null,
   loadWorkflow: mockLoadWorkflow,
   reset: mockReset,
   undo: mockUndo,
@@ -54,6 +61,11 @@ const executionState = {
   reset: mockResetExecution,
 }
 
+const authState = {
+  workspaces: [] as { workspace: { id: string } }[],
+  switchWorkspace: mockSwitchWorkspace,
+}
+
 vi.mock('@/stores/canvasStore', () => ({
   useCanvasStore: (selector: (s: typeof canvasState) => unknown) =>
     selector(canvasState),
@@ -62,6 +74,11 @@ vi.mock('@/stores/canvasStore', () => ({
 vi.mock('@/stores/executionStore', () => ({
   useExecutionStore: (selector: (s: typeof executionState) => unknown) =>
     selector(executionState),
+}))
+
+vi.mock('@/stores/authStore', () => ({
+  useAuthStore: (selector: (s: typeof authState) => unknown) =>
+    selector(authState),
 }))
 
 import { useParams } from 'react-router-dom'

@@ -18,6 +18,7 @@ vi.mock('../middleware/workspace', () => ({
     next: () => void
   ) => {
     req['workspaceId'] = 'test-workspace-id'
+    req['memberRole'] = 'OWNER'
     next()
   },
 }))
@@ -27,11 +28,16 @@ vi.mock('../db/client', () => ({
     workflow: {
       findMany: vi.fn(),
       create: vi.fn(),
-      findFirst: vi.fn(),
+      findUnique: vi.fn(),
       update: vi.fn(),
       delete: vi.fn(),
     },
   },
+}))
+
+vi.mock('../services/cronScheduler', () => ({
+  scheduleCronWorkflow: vi.fn().mockResolvedValue(undefined),
+  removeCronWorkflow: vi.fn().mockResolvedValue(undefined),
 }))
 
 vi.mock('../lib/logger', () => ({
@@ -142,7 +148,7 @@ describe('GET /workflows/:id', () => {
   beforeEach(() => vi.clearAllMocks())
 
   it('returns 200 with the full workflow including nodes and edges', async () => {
-    vi.mocked(prisma.workflow.findFirst).mockResolvedValue(
+    vi.mocked(prisma.workflow.findUnique).mockResolvedValue(
       mockWorkflow as never
     )
     const res = await request(app).get('/workflows/wf-1')
@@ -152,7 +158,7 @@ describe('GET /workflows/:id', () => {
   })
 
   it('returns 404 when workflow does not exist', async () => {
-    vi.mocked(prisma.workflow.findFirst).mockResolvedValue(null)
+    vi.mocked(prisma.workflow.findUnique).mockResolvedValue(null)
     const res = await request(app).get('/workflows/nonexistent')
     expect(res.status).toBe(404)
     expect(res.body.code).toBe('NOT_FOUND')
@@ -165,7 +171,7 @@ describe('PATCH /workflows/:id (rename)', () => {
   beforeEach(() => vi.clearAllMocks())
 
   it('renames the workflow and returns 200', async () => {
-    vi.mocked(prisma.workflow.findFirst).mockResolvedValue(
+    vi.mocked(prisma.workflow.findUnique).mockResolvedValue(
       mockWorkflow as never
     )
     vi.mocked(prisma.workflow.update).mockResolvedValue({
@@ -181,7 +187,7 @@ describe('PATCH /workflows/:id (rename)', () => {
   })
 
   it('returns 404 when workflow does not exist', async () => {
-    vi.mocked(prisma.workflow.findFirst).mockResolvedValue(null)
+    vi.mocked(prisma.workflow.findUnique).mockResolvedValue(null)
     const res = await request(app).patch('/workflows/wf-1').send({ name: 'X' })
     expect(res.status).toBe(404)
   })
@@ -206,7 +212,7 @@ describe('PUT /workflows/:id/graph', () => {
   }
 
   it('saves nodes and edges and returns 200', async () => {
-    vi.mocked(prisma.workflow.findFirst).mockResolvedValue(
+    vi.mocked(prisma.workflow.findUnique).mockResolvedValue(
       mockWorkflow as never
     )
     vi.mocked(prisma.workflow.update).mockResolvedValue({
@@ -221,7 +227,7 @@ describe('PUT /workflows/:id/graph', () => {
   })
 
   it('returns 404 when workflow does not exist', async () => {
-    vi.mocked(prisma.workflow.findFirst).mockResolvedValue(null)
+    vi.mocked(prisma.workflow.findUnique).mockResolvedValue(null)
     const res = await request(app)
       .put('/workflows/wf-1/graph')
       .send({ nodes: [], edges: [] })
@@ -242,7 +248,7 @@ describe('POST /workflows/:id/activate', () => {
   beforeEach(() => vi.clearAllMocks())
 
   it('sets status to ACTIVE and returns 200', async () => {
-    vi.mocked(prisma.workflow.findFirst).mockResolvedValue(
+    vi.mocked(prisma.workflow.findUnique).mockResolvedValue(
       mockWorkflow as never
     )
     vi.mocked(prisma.workflow.update).mockResolvedValue({
@@ -255,7 +261,7 @@ describe('POST /workflows/:id/activate', () => {
   })
 
   it('returns 404 when workflow does not exist', async () => {
-    vi.mocked(prisma.workflow.findFirst).mockResolvedValue(null)
+    vi.mocked(prisma.workflow.findUnique).mockResolvedValue(null)
     const res = await request(app).post('/workflows/wf-1/activate')
     expect(res.status).toBe(404)
   })
@@ -266,7 +272,7 @@ describe('POST /workflows/:id/deactivate', () => {
   beforeEach(() => vi.clearAllMocks())
 
   it('sets status to INACTIVE and returns 200', async () => {
-    vi.mocked(prisma.workflow.findFirst).mockResolvedValue(
+    vi.mocked(prisma.workflow.findUnique).mockResolvedValue(
       mockWorkflow as never
     )
     vi.mocked(prisma.workflow.update).mockResolvedValue({
@@ -285,7 +291,7 @@ describe('POST /workflows/:id/duplicate', () => {
   beforeEach(() => vi.clearAllMocks())
 
   it('creates a copy with "(copy)" suffix and returns 201', async () => {
-    vi.mocked(prisma.workflow.findFirst).mockResolvedValue(
+    vi.mocked(prisma.workflow.findUnique).mockResolvedValue(
       mockWorkflow as never
     )
     vi.mocked(prisma.workflow.create).mockResolvedValue({
@@ -300,7 +306,7 @@ describe('POST /workflows/:id/duplicate', () => {
   })
 
   it('returns 404 when source workflow does not exist', async () => {
-    vi.mocked(prisma.workflow.findFirst).mockResolvedValue(null)
+    vi.mocked(prisma.workflow.findUnique).mockResolvedValue(null)
     const res = await request(app).post('/workflows/wf-1/duplicate')
     expect(res.status).toBe(404)
   })
@@ -312,7 +318,7 @@ describe('PATCH /workflows/:id/name', () => {
   beforeEach(() => vi.clearAllMocks())
 
   it('updates the name and returns { data: { id, name } }', async () => {
-    vi.mocked(prisma.workflow.findFirst).mockResolvedValue(
+    vi.mocked(prisma.workflow.findUnique).mockResolvedValue(
       mockWorkflow as never
     )
     vi.mocked(prisma.workflow.update).mockResolvedValue({
@@ -327,7 +333,7 @@ describe('PATCH /workflows/:id/name', () => {
   })
 
   it('returns 404 when workflow does not belong to workspace', async () => {
-    vi.mocked(prisma.workflow.findFirst).mockResolvedValue(null)
+    vi.mocked(prisma.workflow.findUnique).mockResolvedValue(null)
     const res = await request(app)
       .patch('/workflows/wf-1/name')
       .send({ name: 'New Name' })
@@ -352,7 +358,7 @@ describe('PATCH /workflows/:id/name', () => {
   })
 
   it('returns 500 on unexpected database error', async () => {
-    vi.mocked(prisma.workflow.findFirst).mockResolvedValue(
+    vi.mocked(prisma.workflow.findUnique).mockResolvedValue(
       mockWorkflow as never
     )
     vi.mocked(prisma.workflow.update).mockRejectedValue(new Error('db error'))
@@ -370,7 +376,7 @@ describe('DELETE /workflows/:id', () => {
   beforeEach(() => vi.clearAllMocks())
 
   it('deletes the workflow and returns 204', async () => {
-    vi.mocked(prisma.workflow.findFirst).mockResolvedValue(
+    vi.mocked(prisma.workflow.findUnique).mockResolvedValue(
       mockWorkflow as never
     )
     vi.mocked(prisma.workflow.delete).mockResolvedValue(mockWorkflow as never)
@@ -380,7 +386,7 @@ describe('DELETE /workflows/:id', () => {
   })
 
   it('returns 404 when workflow does not exist', async () => {
-    vi.mocked(prisma.workflow.findFirst).mockResolvedValue(null)
+    vi.mocked(prisma.workflow.findUnique).mockResolvedValue(null)
     const res = await request(app).delete('/workflows/wf-1')
     expect(res.status).toBe(404)
   })
