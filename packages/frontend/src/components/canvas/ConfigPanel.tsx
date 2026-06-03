@@ -42,6 +42,7 @@ function NodeLabelInput({ initialLabel, onCommit }: NodeLabelInputProps) {
 
 export function ConfigPanel() {
   const selectedNodeId = useCanvasStore((s) => s.selectedNodeId)
+  const workflowId = useCanvasStore((s) => s.workflowId)
   const nodes = useCanvasStore((s) => s.nodes)
   const selectNode = useCanvasStore((s) => s.selectNode)
   const updateNodeLabel = useCanvasStore((s) => s.updateNodeLabel)
@@ -126,6 +127,8 @@ export function ConfigPanel() {
               key={selectedNodeId ?? ''}
               nodeType={nodeType}
               config={nodeConfig}
+              workflowId={workflowId ?? undefined}
+              nodeId={selectedNodeId ?? undefined}
               onChange={(config) => {
                 if (selectedNodeId) updateNodeConfig(selectedNodeId, config)
               }}

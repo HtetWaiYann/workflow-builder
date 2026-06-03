@@ -23,6 +23,8 @@ import type {
   InviteMemberRequest,
   UpdateMemberRoleRequest,
   PendingInvite,
+  WebhookSecretStatus,
+  WebhookSecretGenerated,
 } from '@workflow-builder/shared'
 import { useAuthStore } from '@/stores/authStore'
 
@@ -251,6 +253,24 @@ export const api = {
 
     get: (executionId: string) =>
       request<{ execution: Execution }>(`/executions/${executionId}`),
+  },
+
+  webhookSecrets: {
+    get: (workflowId: string, nodeId: string) =>
+      request<WebhookSecretStatus>(
+        `/workflows/${workflowId}/nodes/${nodeId}/webhook-secret`
+      ),
+
+    generate: (workflowId: string, nodeId: string) =>
+      request<WebhookSecretGenerated>(
+        `/workflows/${workflowId}/nodes/${nodeId}/webhook-secret`,
+        { method: 'POST' }
+      ),
+
+    delete: (workflowId: string, nodeId: string) =>
+      request<void>(`/workflows/${workflowId}/nodes/${nodeId}/webhook-secret`, {
+        method: 'DELETE',
+      }),
   },
 
   variables: {

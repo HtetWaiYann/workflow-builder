@@ -1,4 +1,6 @@
 import { Router } from 'express'
+import type { Request } from 'express'
+import { createHmac, timingSafeEqual } from 'node:crypto'
 import { z } from 'zod'
 import {
   WorkflowNodeSchema,
@@ -8,9 +10,34 @@ import type { Prisma } from '../generated/prisma/client'
 import { prisma } from '../db/client'
 import { logger } from '../lib/logger'
 import { runWorkflow } from '../engine/runner'
+import { decrypt } from '../services/encryptionService'
+
+type RawBodyRequest = Request & { rawBody?: Buffer }
 
 const toJson = (v: Record<string, unknown>): Prisma.InputJsonValue =>
   v as unknown as Prisma.InputJsonValue
+
+/**
+ * Verifies an HMAC-SHA256 signature for a webhook request.
+ * Uses a constant-time comparison to prevent timing attacks.
+ *
+ * @param secret - Plaintext HMAC secret.
+ * @param rawBody - Raw request body bytes.
+ * @param signature - Value of the `X-Webhook-Signature` header (e.g. `sha256=<hex>`).
+ * @returns true if the signature is valid, false otherwise.
+ */
+function verifyHmacSignature(
+  secret: string,
+  rawBody: Buffer,
+  signature: string
+): boolean {
+  const expected =
+    'sha256=' + createHmac('sha256', secret).update(rawBody).digest('hex')
+  const expectedBuf = Buffer.from(expected)
+  const sigBuf = Buffer.from(signature)
+  if (sigBuf.length !== expectedBuf.length) return false
+  return timingSafeEqual(sigBuf, expectedBuf)
+}
 
 export const webhooksRouter = Router()
 
@@ -24,7 +51,7 @@ const WebhookPathSchema = z
   )
 
 // Receive an inbound webhook and trigger all matching active workflows.
-// Multiple workflows with the same webhook path all fire in parallel.
+// Per-workflow HMAC verification is performed when a secret is configured.
 // No authentication — this endpoint is publicly accessible.
 webhooksRouter.post('/:webhookPath', async (req, res) => {
   try {
@@ -37,6 +64,10 @@ webhooksRouter.post('/:webhookPath', async (req, res) => {
     }
 
     const webhookPath = `/${pathResult.data}`
+    const rawBody = (req as RawBodyRequest).rawBody ?? Buffer.alloc(0)
+    const signatureHeader = req.headers['x-webhook-signature']
+    const signature =
+      typeof signatureHeader === 'string' ? signatureHeader : null
 
     const activeWorkflows = await prisma.workflow.findMany({
       where: { status: 'ACTIVE' },
@@ -56,6 +87,7 @@ webhooksRouter.post('/:webhookPath', async (req, res) => {
 
     type Match = {
       workflowId: string
+      triggerNodeId: string
       nodes: z.infer<typeof WorkflowNodeSchema>[]
       edges: z.infer<typeof WorkflowEdgeSchema>[]
     }
@@ -66,7 +98,7 @@ webhooksRouter.post('/:webhookPath', async (req, res) => {
       const nodes = z.array(WorkflowNodeSchema).catch([]).parse(wf.nodes)
       const edges = z.array(WorkflowEdgeSchema).catch([]).parse(wf.edges)
 
-      const hasMatch = nodes.some(
+      const triggerNode = nodes.find(
         (n) =>
           n.type === 'webhook-trigger' &&
           typeof n.data['config'] === 'object' &&
@@ -74,8 +106,13 @@ webhooksRouter.post('/:webhookPath', async (req, res) => {
           (n.data['config'] as Record<string, unknown>)['path'] === webhookPath
       )
 
-      if (hasMatch) {
-        matches.push({ workflowId: wf.id, nodes, edges })
+      if (triggerNode) {
+        matches.push({
+          workflowId: wf.id,
+          triggerNodeId: triggerNode.id,
+          nodes,
+          edges,
+        })
       }
     }
 
@@ -86,8 +123,41 @@ webhooksRouter.post('/:webhookPath', async (req, res) => {
       return
     }
 
-    // Create executions for all matching workflows and fire them in parallel
     for (const match of matches) {
+      // If this workflow's trigger node has an HMAC secret, verify the signature.
+      // Workflows that fail verification are silently skipped — always returning 202
+      // prevents callers from enumerating valid paths or detecting secret mismatches.
+      const secretRecord = await prisma.workflowNodeSecret.findUnique({
+        where: {
+          workflowId_nodeId: {
+            workflowId: match.workflowId,
+            nodeId: match.triggerNodeId,
+          },
+        },
+      })
+
+      if (secretRecord) {
+        if (!signature) {
+          logger.warn(
+            { workflowId: match.workflowId },
+            'Webhook skipped: missing X-Webhook-Signature'
+          )
+          continue
+        }
+        const plaintext = decrypt(
+          secretRecord.encryptedValue,
+          secretRecord.iv,
+          secretRecord.authTag
+        )
+        if (!verifyHmacSignature(plaintext, rawBody, signature)) {
+          logger.warn(
+            { workflowId: match.workflowId },
+            'Webhook skipped: invalid HMAC signature'
+          )
+          continue
+        }
+      }
+
       const execution = await prisma.$transaction(async (tx) => {
         const exec = await tx.execution.create({
           data: {

@@ -103,18 +103,36 @@ enum NodeRunStatus {
 }
 
 model Workflow {
-  id          String         @id @default(cuid())
+  id          String               @id @default(cuid())
   workspaceId String
-  workspace   Workspace      @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  workspace   Workspace            @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   name        String
-  status      WorkflowStatus @default(DRAFT)
-  nodes       Json           @default("[]")
-  edges       Json           @default("[]")
-  createdAt   DateTime       @default(now())
-  updatedAt   DateTime       @updatedAt
+  status      WorkflowStatus       @default(DRAFT)
+  nodes       Json                 @default("[]")
+  edges       Json                 @default("[]")
+  createdAt   DateTime             @default(now())
+  updatedAt   DateTime             @updatedAt
   executions  Execution[]
+  nodeSecrets WorkflowNodeSecret[]
 
   @@index([workspaceId])
+}
+
+model WorkflowNodeSecret {
+  id             String   @id @default(cuid())
+  workflowId     String
+  nodeId         String
+  encryptedValue String
+  iv             String
+  authTag        String
+  hint           String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  workflow Workflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+
+  @@unique([workflowId, nodeId])
+  @@index([workflowId])
 }
 
 model Execution {
