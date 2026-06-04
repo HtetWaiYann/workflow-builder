@@ -5,7 +5,7 @@
     <!-- Apply theme class before first paint to prevent flash of wrong theme -->
     <script>
       ;(function () {
-        var k = 'workflow-builder-theme'
+        var k = 'triggr-theme'
         var t = 'system'
         try {
           t = localStorage.getItem(k) || 'system'
@@ -43,30 +43,36 @@
       rel="stylesheet"
     />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Workflow Builder</title>
+    <title>Triggr — Visual Workflow Automation</title>
     <meta
       name="description"
-      content="Workflow Builder — visually design, automate, and monitor workflows with a drag-and-drop canvas."
+      content="Triggr is a visual workflow automation platform. Build, trigger, and automate multi-step workflows with a drag-and-drop canvas. Connect your tools and automate anything — no code required."
+    />
+    <meta
+      name="keywords"
+      content="workflow automation, visual workflow builder, drag-and-drop automation, no-code workflows, workflow engine, task automation, trigger automation"
     />
     <meta name="robots" content="index, follow" />
+    <meta name="author" content="Triggr" />
 
     <!-- Open Graph -->
     <meta property="og:type" content="website" />
-    <meta property="og:title" content="Workflow Builder" />
+    <meta property="og:site_name" content="Triggr" />
+    <meta property="og:title" content="Triggr — Visual Workflow Automation" />
     <meta
       property="og:description"
-      content="Visually design, automate, and monitor workflows with a drag-and-drop canvas."
+      content="Build, trigger, and automate multi-step workflows with a drag-and-drop canvas. Connect your tools and automate anything."
     />
 
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary" />
-    <meta name="twitter:title" content="Workflow Builder" />
+    <meta name="twitter:title" content="Triggr — Visual Workflow Automation" />
     <meta
       name="twitter:description"
-      content="Visually design, automate, and monitor workflows with a drag-and-drop canvas."
+      content="Build, trigger, and automate multi-step workflows with a drag-and-drop canvas. Connect your tools and automate anything."
     />
 
-    <!-- Browser theme color (matches indigo accent) -->
+    <!-- Browser theme color (matches brand accent) -->
     <meta
       name="theme-color"
       content="#5060d0"
@@ -77,6 +83,22 @@
       content="#9090e8"
       media="(prefers-color-scheme: dark)"
     />
+
+    <!-- Structured data for Google -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        "name": "Triggr",
+        "applicationCategory": "BusinessApplication",
+        "operatingSystem": "Web",
+        "description": "Visual workflow automation platform. Build, trigger, and automate multi-step workflows with a drag-and-drop canvas.",
+        "offers": {
+          "@type": "Offer",
+          "price": "0"
+        }
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>

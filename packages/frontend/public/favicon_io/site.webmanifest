@@ -1,6 +1,7 @@
 {
-  "name": "Workflow Builder",
-  "short_name": "Workflow",
+  "name": "Triggr",
+  "short_name": "Triggr",
+  "description": "Visual workflow automation platform",
   "icons": [
     {
       "src": "/favicon_io/android-chrome-192x192.png",
@@ -13,7 +14,8 @@
       "type": "image/png"
     }
   ],
-  "theme_color": "#0f0f11",
-  "background_color": "#0f0f11",
-  "display": "standalone"
+  "theme_color": "#5060d0",
+  "background_color": "#ffffff",
+  "display": "standalone",
+  "start_url": "/"
 }
