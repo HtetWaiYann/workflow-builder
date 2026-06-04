@@ -41,10 +41,9 @@ export class RunJsCodeExecutor implements NodeExecutor {
         })()
       `
 
-      const script = await isolate.compileScript(wrappedCode)
-
       let resultJson: unknown
       try {
+        const script = await isolate.compileScript(wrappedCode)
         resultJson = await script.run(context, { timeout: 5000 })
       } catch (err) {
         const message = err instanceof Error ? err.message : String(err)

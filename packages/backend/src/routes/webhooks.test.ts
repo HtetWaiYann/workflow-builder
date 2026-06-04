@@ -6,6 +6,9 @@ vi.mock('../db/client', () => ({
       findMany: vi.fn(),
     },
     $transaction: vi.fn(),
+    workflowNodeSecret: {
+      findUnique: vi.fn(),
+    },
   },
 }))
 
@@ -220,12 +223,10 @@ describe('POST /webhooks/:webhookPath', () => {
         txCallCount++
         const tx = {
           execution: {
-            create: vi
-              .fn()
-              .mockResolvedValue({
-                ...mockExecution,
-                id: `exec-${txCallCount}`,
-              }),
+            create: vi.fn().mockResolvedValue({
+              ...mockExecution,
+              id: `exec-${txCallCount}`,
+            }),
           },
           executionNodeRun: {
             createMany: vi.fn().mockResolvedValue({ count: 1 }),

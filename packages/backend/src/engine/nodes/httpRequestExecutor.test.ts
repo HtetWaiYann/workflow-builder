@@ -6,6 +6,10 @@ vi.mock('../../lib/logger', () => ({
   logger: { warn: vi.fn(), debug: vi.fn(), info: vi.fn(), error: vi.fn() },
 }))
 
+vi.mock('../../lib/ssrfGuard', () => ({
+  assertSafeUrl: vi.fn().mockResolvedValue(undefined),
+}))
+
 const ctx: ExecutionContext = {
   executionId: 'exec-1',
   workflowId: 'wf-1',

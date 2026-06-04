@@ -10,6 +10,7 @@ vi.mock('../db/client', () => ({
       findUnique: vi.fn(),
       create: vi.fn(),
     },
+    $transaction: vi.fn(),
   },
 }))
 
@@ -40,6 +41,12 @@ function buildApp() {
   return app
 }
 
+const fakeWorkspace = {
+  id: 'ws-1',
+  name: "Test User's Workspace",
+  createdAt: new Date('2024-01-01'),
+}
+
 const fakeUser = {
   id: 'user-1',
   email: 'test@example.com',
@@ -47,13 +54,12 @@ const fakeUser = {
   passwordHash: 'hashed-pw',
   createdAt: new Date('2024-01-01'),
   updatedAt: new Date('2024-01-01'),
-  workspace: {
-    id: 'ws-1',
-    name: "Test User's Workspace",
-    userId: 'user-1',
-    createdAt: new Date('2024-01-01'),
-    updatedAt: new Date('2024-01-01'),
-  },
+  memberships: [
+    {
+      role: 'OWNER',
+      workspace: fakeWorkspace,
+    },
+  ],
 }
 
 beforeEach(() => {
@@ -74,11 +80,13 @@ describe('POST /auth/register', () => {
   })
 
   it('returns 409 when email is already taken', async () => {
-    vi.mocked(mockPrisma.user.findUnique).mockResolvedValueOnce(fakeUser)
+    vi.mocked(mockPrisma.user.findUnique).mockResolvedValueOnce(
+      fakeUser as never
+    )
 
     const res = await request(buildApp())
       .post('/auth/register')
-      .send({ email: 'test@example.com', password: 'password123' })
+      .send({ email: 'test@example.com', password: 'Password123!' })
 
     expect(res.status).toBe(409)
     expect(res.body.code).toBe('EMAIL_TAKEN')
@@ -86,17 +94,24 @@ describe('POST /auth/register', () => {
 
   it('returns 201 and sets cookie on success', async () => {
     vi.mocked(mockPrisma.user.findUnique).mockResolvedValueOnce(null)
-    vi.mocked(mockPrisma.user.create).mockResolvedValueOnce(fakeUser)
+    vi.mocked(mockPrisma.$transaction).mockImplementationOnce(async (fn) => {
+      const tx = {
+        user: { create: vi.fn().mockResolvedValue(fakeUser) },
+        workspace: { create: vi.fn().mockResolvedValue(fakeWorkspace) },
+        workspaceMember: { create: vi.fn().mockResolvedValue({}) },
+      }
+      return (fn as (tx: unknown) => Promise<unknown>)(tx)
+    })
 
     const res = await request(buildApp())
       .post('/auth/register')
-      .send({ email: 'new@example.com', password: 'password123', name: 'New' })
+      .send({ email: 'new@example.com', password: 'Password123!', name: 'New' })
 
     expect(res.status).toBe(201)
     expect(res.body.user.email).toBe('test@example.com')
     expect(res.headers['set-cookie']).toBeDefined()
     expect(signToken).toHaveBeenCalled()
-    expect(hashPassword).toHaveBeenCalledWith('password123')
+    expect(hashPassword).toHaveBeenCalledWith('Password123!')
   })
 })
 
@@ -124,7 +139,9 @@ describe('POST /auth/login', () => {
   })
 
   it('returns 401 when password is wrong', async () => {
-    vi.mocked(mockPrisma.user.findUnique).mockResolvedValueOnce(fakeUser)
+    vi.mocked(mockPrisma.user.findUnique).mockResolvedValueOnce(
+      fakeUser as never
+    )
     mockVerifyPassword.mockResolvedValueOnce(false)
 
     const res = await request(buildApp())
@@ -136,7 +153,9 @@ describe('POST /auth/login', () => {
   })
 
   it('returns 200 and sets cookie on success', async () => {
-    vi.mocked(mockPrisma.user.findUnique).mockResolvedValueOnce(fakeUser)
+    vi.mocked(mockPrisma.user.findUnique).mockResolvedValueOnce(
+      fakeUser as never
+    )
     mockVerifyPassword.mockResolvedValueOnce(true)
 
     const res = await request(buildApp())
@@ -207,7 +226,9 @@ describe('GET /auth/me', () => {
       sub: 'user-1',
       email: 'test@example.com',
     })
-    vi.mocked(mockPrisma.user.findUnique).mockResolvedValueOnce(fakeUser)
+    vi.mocked(mockPrisma.user.findUnique).mockResolvedValueOnce(
+      fakeUser as never
+    )
 
     const res = await request(buildApp())
       .get('/auth/me')
@@ -215,6 +236,6 @@ describe('GET /auth/me', () => {
 
     expect(res.status).toBe(200)
     expect(res.body.user.email).toBe('test@example.com')
-    expect(res.body.workspace.id).toBe('ws-1')
+    expect(res.body.workspaces[0].workspace.id).toBe('ws-1')
   })
 })

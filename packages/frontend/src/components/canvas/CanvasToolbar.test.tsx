@@ -155,12 +155,12 @@ describe('CanvasToolbar', () => {
   it('Run button is disabled when no workflow is loaded', () => {
     useCanvasStore.setState({ workflowId: null })
     renderToolbar()
-    expect(screen.getByRole('button', { name: /run/i })).toBeDisabled()
+    expect(screen.getByRole('button', { name: 'Run' })).toBeDisabled()
   })
 
   it('Run button is enabled when a workflow is loaded', () => {
     renderToolbar()
-    expect(screen.getByRole('button', { name: /run/i })).not.toBeDisabled()
+    expect(screen.getByRole('button', { name: 'Run' })).not.toBeDisabled()
   })
 })
 
@@ -225,7 +225,7 @@ describe('cycle detection on Run', () => {
       edges: cycleEdges as never,
     })
     renderToolbar()
-    await userEvent.click(screen.getByRole('button', { name: /run/i }))
+    await userEvent.click(screen.getByRole('button', { name: 'Run' }))
     expect(vi.mocked(toast.error)).toHaveBeenCalledWith(
       'Workflow has a cycle',
       expect.any(Object)
@@ -239,7 +239,7 @@ describe('cycle detection on Run', () => {
       edges: [{ id: 'e1', source: 'a', target: 'b' }] as never,
     })
     renderToolbar()
-    await userEvent.click(screen.getByRole('button', { name: /run/i }))
+    await userEvent.click(screen.getByRole('button', { name: 'Run' }))
     expect(vi.mocked(toast.error)).not.toHaveBeenCalled()
     expect(mockTriggerExecution).toHaveBeenCalledWith('wf-1')
   })
