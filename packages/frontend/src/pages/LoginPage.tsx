@@ -15,7 +15,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
-import { PublicNavbar } from '@/components/PublicNavbar'
+import { Navbar } from '@/components/Navbar'
 
 export function LoginPage() {
   const [email, setEmail] = useState('')
@@ -45,7 +45,7 @@ export function LoginPage() {
 
   return (
     <>
-      <PublicNavbar />
+      <Navbar />
       <div className="flex min-h-screen items-center justify-center pt-14">
         <Card className="w-full max-w-sm">
           <CardHeader>

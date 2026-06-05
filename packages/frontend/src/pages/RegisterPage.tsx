@@ -15,7 +15,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
-import { PublicNavbar } from '@/components/PublicNavbar'
+import { Navbar } from '@/components/Navbar'
 
 const PASSWORD_RULES = [
   {
@@ -77,7 +77,7 @@ export function RegisterPage() {
 
   return (
     <>
-      <PublicNavbar />
+      <Navbar />
       <div className="flex min-h-screen items-center justify-center pt-14">
         <Card className="w-full max-w-sm">
           <CardHeader>

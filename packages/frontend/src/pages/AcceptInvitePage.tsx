@@ -5,7 +5,7 @@ import { api } from '@/lib/api'
 import type { InvitePreview } from '@/lib/api'
 import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
-import { PublicNavbar } from '@/components/PublicNavbar'
+import { Navbar } from '@/components/Navbar'
 import { LoadingScreen } from '@/components/LoadingScreen'
 
 export function AcceptInvitePage() {
@@ -80,7 +80,7 @@ export function AcceptInvitePage() {
   if (loading) {
     return (
       <>
-        <PublicNavbar />
+        <Navbar />
         <LoadingScreen />
       </>
     )
@@ -89,7 +89,7 @@ export function AcceptInvitePage() {
   if (error || !invite) {
     return (
       <>
-        <PublicNavbar />
+        <Navbar />
         <div className="flex min-h-screen flex-col items-center justify-center gap-4 px-4 pt-14 text-center">
           <h1 className="text-xl font-semibold">Invite not found</h1>
           <p className="text-muted-foreground text-sm">
@@ -110,7 +110,7 @@ export function AcceptInvitePage() {
 
   return (
     <>
-      <PublicNavbar />
+      <Navbar />
       <div className="flex min-h-screen items-center justify-center px-4 pt-14">
         <div className="w-full max-w-sm rounded-xl border p-8 shadow-sm">
           <div className="bg-primary text-primary-foreground mb-4 flex size-12 items-center justify-center rounded-xl text-xl font-bold">

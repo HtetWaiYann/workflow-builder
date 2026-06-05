@@ -3,15 +3,15 @@ interface TriggrIconProps {
   className?: string
 }
 
-/** Triggr brand icon — uses the real app logo from public/favicon_io. */
+/** Triggr brand icon — uses the SVG logo from public/logo.svg. */
 export function TriggrIcon({ size = 32, className }: TriggrIconProps) {
   return (
     <img
-      src="/favicon_io/android-chrome-192x192.png"
+      src="/logo.svg"
       alt="Triggr"
       width={size}
       height={size}
-      className={`rounded-lg ${className ?? ''}`}
+      className={className}
     />
   )
 }
