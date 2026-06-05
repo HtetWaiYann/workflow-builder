@@ -28,7 +28,7 @@ import type {
 } from '@workflow-builder/shared'
 import { useAuthStore } from '@/stores/authStore'
 
-const BASE_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3001'
+const BASE_URL = '/api'
 
 /**
  * Sends a JSON request to the API with credentials (cookies) included.
