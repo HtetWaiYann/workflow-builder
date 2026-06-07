@@ -42,7 +42,7 @@ function renderRoute(
 describe('PublicRoute', () => {
   it('shows the loading placeholder while auth is initialising', () => {
     renderRoute()
-    expect(screen.getByText('Loading…')).toBeInTheDocument()
+    expect(screen.getByRole('status')).toBeInTheDocument()
   })
 
   it('renders children when the user is not authenticated', () => {

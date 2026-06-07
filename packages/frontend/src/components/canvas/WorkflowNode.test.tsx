@@ -188,7 +188,7 @@ describe('execution status border', () => {
 
   it('renders the status dot in the header for any nodeRun status', () => {
     setNodeRun('n1', 'SUCCESS')
-    render(<WorkflowNode {...makeProps({ id: 'n1' })} />)
-    expect(screen.getByTitle('SUCCESS')).toBeInTheDocument()
+    const { container } = render(<WorkflowNode {...makeProps({ id: 'n1' })} />)
+    expect(container.querySelector('.bg-green-500')).toBeInTheDocument()
   })
 })

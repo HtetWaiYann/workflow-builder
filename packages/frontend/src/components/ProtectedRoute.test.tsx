@@ -36,7 +36,7 @@ function renderRoute(children = <div>protected content</div>) {
 describe('ProtectedRoute', () => {
   it('shows the loading spinner while isLoading is true', () => {
     renderRoute()
-    expect(screen.getByText('Loading…')).toBeInTheDocument()
+    expect(screen.getByRole('status')).toBeInTheDocument()
   })
 
   it('redirects to /login when user is null and not loading', () => {
