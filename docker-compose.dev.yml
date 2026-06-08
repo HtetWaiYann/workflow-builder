@@ -80,7 +80,7 @@ services:
       # Anonymous volume prevents host node_modules from shadowing the container's install
       - /app/node_modules
     environment:
-      VITE_API_URL: http://localhost:3001
+      BACKEND_URL: http://backend:3001
     ports:
       - '5173:5173'
     depends_on:

@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /login
+Allow: /register
+Disallow: /workflows
+Disallow: /settings
+Disallow: /workspaces
+
+# Update the domain below to your production URL before deploying
+Sitemap: https://yourdomain.com/sitemap.xml

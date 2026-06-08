@@ -4,6 +4,7 @@ import type { NodeType, NodeRunStatus } from '@workflow-builder/shared'
 import { ERROR_HANDLE_ID } from '@workflow-builder/shared'
 import { getNodeDefinition, ICON_MAP } from '@/lib/nodeRegistry'
 import { useExecutionStore } from '@/stores/executionStore'
+import { WorkflowNodeCard } from '@/components/canvas/WorkflowNodeCard'
 
 const STATUS_DOT: Record<NodeRunStatus, string> = {
   PENDING: 'bg-muted-foreground/40',
@@ -41,16 +42,13 @@ export function WorkflowNode(props: NodeProps) {
   const activeBorderColor = props.selected ? def.color : statusBorderColor
 
   return (
-    <div
-      style={
-        activeBorderColor
-          ? {
-              border: `1.5px solid ${activeBorderColor}`,
-              boxShadow: `0 0 0 3px ${activeBorderColor}22`,
-            }
-          : undefined
-      }
-      className="relative w-[220px] overflow-hidden rounded-lg border border-zinc-200 bg-white select-none dark:border-zinc-700 dark:bg-zinc-900"
+    <WorkflowNodeCard
+      label={label}
+      description={def.description}
+      color={def.color}
+      Icon={IconComponent}
+      borderColor={activeBorderColor}
+      statusDot={nodeRun ? STATUS_DOT[nodeRun.status] : undefined}
     >
       {/* Input handles */}
       {def.inputs.map((port, i) => (
@@ -68,35 +66,6 @@ export function WorkflowNode(props: NodeProps) {
           }}
         />
       ))}
-
-      {/* Header */}
-      <div className="flex items-center gap-2 px-3 py-2.5">
-        {IconComponent && (
-          <IconComponent
-            size={14}
-            style={{ color: def.color, flexShrink: 0 }}
-          />
-        )}
-        <span className="flex-1 truncate text-sm leading-tight font-medium">
-          {label}
-        </span>
-        {nodeRun && (
-          <span
-            className={`size-2 flex-shrink-0 rounded-full ${STATUS_DOT[nodeRun.status]}`}
-            title={nodeRun.status}
-          />
-        )}
-      </div>
-
-      {/* Divider */}
-      <div className="border-t border-zinc-200 dark:border-zinc-700/80" />
-
-      {/* Body */}
-      <div className="px-3 py-2">
-        <p className="text-muted-foreground truncate text-xs">
-          {def.description}
-        </p>
-      </div>
 
       {/* Output handles */}
       {def.outputs.map((port, i) => (
@@ -131,6 +100,6 @@ export function WorkflowNode(props: NodeProps) {
           }}
         />
       )}
-    </div>
+    </WorkflowNodeCard>
   )
 }

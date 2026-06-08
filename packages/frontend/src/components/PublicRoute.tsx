@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import { Navigate, useSearchParams } from 'react-router-dom'
 import { useAuthStore } from '@/stores/authStore'
+import { LoadingScreen } from '@/components/LoadingScreen'
 
 interface PublicRouteProps {
   children: ReactNode
@@ -19,11 +20,7 @@ export function PublicRoute({ children }: PublicRouteProps) {
   const [searchParams] = useSearchParams()
 
   if (isLoading) {
-    return (
-      <div className="flex h-screen items-center justify-center">
-        <div className="text-muted-foreground text-sm">Loading…</div>
-      </div>
-    )
+    return <LoadingScreen />
   }
 
   if (user) {

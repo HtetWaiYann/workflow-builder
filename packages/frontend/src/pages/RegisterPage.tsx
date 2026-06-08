@@ -15,6 +15,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
+import { Navbar } from '@/components/Navbar'
 
 const PASSWORD_RULES = [
   {
@@ -75,106 +76,109 @@ export function RegisterPage() {
   }
 
   return (
-    <div className="flex h-screen items-center justify-center">
-      <Card className="w-full max-w-sm">
-        <CardHeader>
-          <CardTitle>Create account</CardTitle>
-          <CardDescription>
-            Sign up to get started with Workflow Builder.
-          </CardDescription>
-        </CardHeader>
-        <form onSubmit={handleSubmit} className="flex flex-col gap-6">
-          <CardContent className="flex flex-col gap-4">
-            {error && (
-              <p
-                role="alert"
-                aria-live="polite"
-                className="text-destructive text-sm"
-              >
-                {error}
-              </p>
-            )}
-            <div className="flex flex-col gap-1.5">
-              <Label htmlFor="name">Name (optional)</Label>
-              <Input
-                id="name"
-                type="text"
-                autoComplete="name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-              />
-            </div>
-            <div className="flex flex-col gap-1.5">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                autoComplete="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-            </div>
-            <div className="flex flex-col gap-1.5">
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                autoComplete="new-password"
-                required
-                value={password}
-                onChange={(e) => {
-                  setPassword(e.target.value)
-                  if (!passwordTouched) setPasswordTouched(true)
-                }}
-              />
-              {passwordTouched && (
-                <ul
-                  className="mt-1 flex flex-col gap-1"
-                  aria-label="Password requirements"
+    <>
+      <Navbar />
+      <div className="flex min-h-screen items-center justify-center pt-14">
+        <Card className="w-full max-w-sm">
+          <CardHeader>
+            <CardTitle>Create account</CardTitle>
+            <CardDescription>
+              Sign up to get started with Triggr.
+            </CardDescription>
+          </CardHeader>
+          <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+            <CardContent className="flex flex-col gap-4">
+              {error && (
+                <p
+                  role="alert"
+                  aria-live="polite"
+                  className="text-destructive text-sm"
                 >
-                  {PASSWORD_RULES.map((rule) => {
-                    const passed = rule.test(password)
-                    return (
-                      <li
-                        key={rule.id}
-                        className={`flex items-center gap-1.5 text-xs ${
-                          passed
-                            ? 'text-green-500 dark:text-green-400'
-                            : 'text-muted-foreground'
-                        }`}
-                      >
-                        <CircleCheck
-                          className={`size-3.5 shrink-0 ${passed ? 'opacity-100' : 'opacity-30'}`}
-                        />
-                        {rule.label}
-                      </li>
-                    )
-                  })}
-                </ul>
+                  {error}
+                </p>
               )}
-            </div>
-          </CardContent>
-          <CardFooter className="flex flex-col gap-3">
-            <Button
-              type="submit"
-              className="w-full"
-              disabled={isSubmitting || !allRulesPassed}
-            >
-              {isSubmitting ? 'Creating account…' : 'Create account'}
-            </Button>
-            <p className="text-muted-foreground text-sm">
-              Already have an account?{' '}
-              <Link
-                to={`/login?redirect=${encodeURIComponent(redirect)}`}
-                className="text-foreground underline underline-offset-4"
+              <div className="flex flex-col gap-1.5">
+                <Label htmlFor="name">Name (optional)</Label>
+                <Input
+                  id="name"
+                  type="text"
+                  autoComplete="name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                />
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  autoComplete="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <Label htmlFor="password">Password</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  autoComplete="new-password"
+                  required
+                  value={password}
+                  onChange={(e) => {
+                    setPassword(e.target.value)
+                    if (!passwordTouched) setPasswordTouched(true)
+                  }}
+                />
+                {passwordTouched && (
+                  <ul
+                    className="mt-1 flex flex-col gap-1"
+                    aria-label="Password requirements"
+                  >
+                    {PASSWORD_RULES.map((rule) => {
+                      const passed = rule.test(password)
+                      return (
+                        <li
+                          key={rule.id}
+                          className={`flex items-center gap-1.5 text-xs ${
+                            passed
+                              ? 'text-green-500 dark:text-green-400'
+                              : 'text-muted-foreground'
+                          }`}
+                        >
+                          <CircleCheck
+                            className={`size-3.5 shrink-0 ${passed ? 'opacity-100' : 'opacity-30'}`}
+                          />
+                          {rule.label}
+                        </li>
+                      )
+                    })}
+                  </ul>
+                )}
+              </div>
+            </CardContent>
+            <CardFooter className="flex flex-col gap-3">
+              <Button
+                type="submit"
+                className="w-full"
+                disabled={isSubmitting || !allRulesPassed}
               >
-                Sign in
-              </Link>
-            </p>
-          </CardFooter>
-        </form>
-      </Card>
-    </div>
+                {isSubmitting ? 'Creating account…' : 'Create account'}
+              </Button>
+              <p className="text-muted-foreground text-sm">
+                Already have an account?{' '}
+                <Link
+                  to={`/login?redirect=${encodeURIComponent(redirect)}`}
+                  className="text-foreground underline underline-offset-4"
+                >
+                  Sign in
+                </Link>
+              </p>
+            </CardFooter>
+          </form>
+        </Card>
+      </div>
+    </>
   )
 }

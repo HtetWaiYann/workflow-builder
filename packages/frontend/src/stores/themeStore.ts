@@ -7,7 +7,7 @@ interface ThemeState {
   setTheme: (theme: Theme) => void
 }
 
-const STORAGE_KEY = 'workflow-builder-theme'
+const STORAGE_KEY = 'triggr-theme'
 
 function readStoredTheme(): Theme {
   try {
