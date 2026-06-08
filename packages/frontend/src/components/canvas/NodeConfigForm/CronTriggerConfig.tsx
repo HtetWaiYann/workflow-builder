@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { CronTriggerConfigSchema } from '@workflow-builder/shared'
+import { CronTriggerConfigSchema } from '@triggr/shared'
 import { Input } from '@/components/ui/input'
 import { Field } from '@/components/canvas/NodeConfigForm/Field'
 import { str } from '@/lib/nodeConfigHelpers'

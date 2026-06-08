@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { HttpRequestExecutor } from './httpRequestExecutor'
-import type { ExecutionContext } from '@workflow-builder/shared'
+import type { ExecutionContext } from '@triggr/shared'
 
 vi.mock('../../lib/logger', () => ({
   logger: { warn: vi.fn(), debug: vi.fn(), info: vi.fn(), error: vi.fn() },

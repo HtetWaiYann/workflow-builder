@@ -18,7 +18,7 @@ import type {
   Connection,
   NodeTypes,
 } from '@xyflow/react'
-import type { NodeType } from '@workflow-builder/shared'
+import type { NodeType } from '@triggr/shared'
 import { useCanvasStore } from '@/stores/canvasStore'
 import { useThemeStore } from '@/stores/themeStore'
 import { WorkflowNode } from './WorkflowNode'

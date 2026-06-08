@@ -6,8 +6,8 @@ import {
   CreateWorkflowRequestSchema,
   RenameWorkflowRequestSchema,
   SaveWorkflowRequestSchema,
-} from '@workflow-builder/shared'
-import type { Workflow, WorkflowSummary } from '@workflow-builder/shared'
+} from '@triggr/shared'
+import type { Workflow, WorkflowSummary } from '@triggr/shared'
 import { z } from 'zod'
 import type { Prisma } from '../generated/prisma/client'
 import { prisma } from '../db/client'

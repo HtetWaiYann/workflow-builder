@@ -1,5 +1,5 @@
-import type { NodeExecutor, ExecutionContext } from '@workflow-builder/shared'
-import { SwitchConfigSchema, BRANCH_HANDLE_KEY } from '@workflow-builder/shared'
+import type { NodeExecutor, ExecutionContext } from '@triggr/shared'
+import { SwitchConfigSchema, BRANCH_HANDLE_KEY } from '@triggr/shared'
 
 export class SwitchExecutor implements NodeExecutor {
   readonly type = 'switch' as const

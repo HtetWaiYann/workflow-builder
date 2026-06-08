@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { WorkflowNodeSchema } from '@workflow-builder/shared'
+import { WorkflowNodeSchema } from '@triggr/shared'
 import { getCronQueue } from '../queues/cronQueue'
 import { logger } from '../lib/logger'
 

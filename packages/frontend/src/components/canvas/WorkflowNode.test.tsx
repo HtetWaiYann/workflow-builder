@@ -3,7 +3,7 @@ import { render, screen } from '@testing-library/react'
 import { WorkflowNode } from '@/components/canvas/WorkflowNode'
 import { useExecutionStore } from '@/stores/executionStore'
 import type { NodeProps } from '@xyflow/react'
-import type { NodeRunStatus } from '@workflow-builder/shared'
+import type { NodeRunStatus } from '@triggr/shared'
 
 vi.mock('@/lib/api', () => ({
   api: {

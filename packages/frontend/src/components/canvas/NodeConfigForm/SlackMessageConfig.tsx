@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { SlackMessageConfigSchema } from '@workflow-builder/shared'
+import { SlackMessageConfigSchema } from '@triggr/shared'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Field } from '@/components/canvas/NodeConfigForm/Field'

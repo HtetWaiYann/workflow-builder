@@ -3,7 +3,7 @@ import { render, screen } from '@testing-library/react'
 import { MemoryRouter, Routes, Route } from 'react-router-dom'
 import { PublicRoute } from '@/components/PublicRoute'
 import { useAuthStore } from '@/stores/authStore'
-import type { User } from '@workflow-builder/shared'
+import type { User } from '@triggr/shared'
 
 const fakeUser: User = {
   id: 'user-1',

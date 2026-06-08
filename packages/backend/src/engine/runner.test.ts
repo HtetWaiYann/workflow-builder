@@ -31,7 +31,7 @@ vi.mock('../lib/logger', () => ({
 import { runWorkflow } from './runner'
 import { prisma } from '../db/client'
 import { getExecutor } from './registry'
-import type { WorkflowNode, WorkflowEdge } from '@workflow-builder/shared'
+import type { WorkflowNode, WorkflowEdge } from '@triggr/shared'
 
 // Suppress encryption errors in tests — workspace variables return empty map
 vi.mock('../services/encryptionService', () => ({

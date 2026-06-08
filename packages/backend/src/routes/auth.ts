@@ -6,7 +6,7 @@ import { hashPassword, verifyPassword, signToken } from '../services/auth'
 import {
   RegisterRequestSchema,
   LoginRequestSchema,
-} from '@workflow-builder/shared'
+} from '@triggr/shared'
 import { requireAuth } from '../middleware/auth'
 import type { AuthRequest } from '../middleware/auth'
 

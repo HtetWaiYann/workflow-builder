@@ -1,4 +1,4 @@
-import type { NodeType } from '@workflow-builder/shared'
+import type { NodeType } from '@triggr/shared'
 import { NoConfig } from '@/components/canvas/NodeConfigForm/NoConfig'
 import { WebhookTriggerConfig } from '@/components/canvas/NodeConfigForm/WebhookTriggerConfig'
 import { CronTriggerConfig } from '@/components/canvas/NodeConfigForm/CronTriggerConfig'

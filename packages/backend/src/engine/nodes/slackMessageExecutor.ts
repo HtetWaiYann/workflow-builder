@@ -1,5 +1,5 @@
-import type { NodeExecutor, ExecutionContext } from '@workflow-builder/shared'
-import { SlackMessageConfigSchema } from '@workflow-builder/shared'
+import type { NodeExecutor, ExecutionContext } from '@triggr/shared'
+import { SlackMessageConfigSchema } from '@triggr/shared'
 import { logger } from '../../lib/logger'
 import { assertSafeUrl } from '../../lib/ssrfGuard'
 

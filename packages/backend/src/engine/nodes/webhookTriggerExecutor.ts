@@ -1,4 +1,4 @@
-import type { NodeExecutor, ExecutionContext } from '@workflow-builder/shared'
+import type { NodeExecutor, ExecutionContext } from '@triggr/shared'
 
 export class WebhookTriggerExecutor implements NodeExecutor {
   readonly type = 'webhook-trigger' as const

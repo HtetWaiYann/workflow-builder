@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { SwitchExecutor } from './switchExecutor'
-import { BRANCH_HANDLE_KEY } from '@workflow-builder/shared'
-import type { ExecutionContext } from '@workflow-builder/shared'
+import { BRANCH_HANDLE_KEY } from '@triggr/shared'
+import type { ExecutionContext } from '@triggr/shared'
 
 const ctx: ExecutionContext = {
   executionId: 'exec-1',

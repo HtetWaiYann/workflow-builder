@@ -1,6 +1,6 @@
 import ivm from 'isolated-vm'
-import type { NodeExecutor, ExecutionContext } from '@workflow-builder/shared'
-import { RunJsCodeConfigSchema } from '@workflow-builder/shared'
+import type { NodeExecutor, ExecutionContext } from '@triggr/shared'
+import { RunJsCodeConfigSchema } from '@triggr/shared'
 
 export class RunJsCodeExecutor implements NodeExecutor {
   readonly type = 'run-js-code' as const

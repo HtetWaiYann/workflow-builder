@@ -7,12 +7,12 @@ import {
   WorkflowEdgeSchema,
   ExecutionStatusSchema,
   NodeRunStatusSchema,
-} from '@workflow-builder/shared'
+} from '@triggr/shared'
 import type {
   Execution,
   ExecutionSummary,
   ExecutionNodeRun,
-} from '@workflow-builder/shared'
+} from '@triggr/shared'
 import type { Prisma } from '../generated/prisma/client'
 import { prisma } from '../db/client'
 import { logger } from '../lib/logger'

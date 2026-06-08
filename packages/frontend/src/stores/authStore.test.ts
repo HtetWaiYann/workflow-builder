@@ -4,7 +4,7 @@ import type {
   User,
   Workspace,
   WorkspaceMembership,
-} from '@workflow-builder/shared'
+} from '@triggr/shared'
 
 const fakeUser: User = {
   id: 'user-1',

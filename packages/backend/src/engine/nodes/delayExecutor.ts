@@ -1,5 +1,5 @@
-import type { NodeExecutor, ExecutionContext } from '@workflow-builder/shared'
-import { DelayConfigSchema } from '@workflow-builder/shared'
+import type { NodeExecutor, ExecutionContext } from '@triggr/shared'
+import { DelayConfigSchema } from '@triggr/shared'
 import { logger } from '../../lib/logger'
 
 const MS_PER_UNIT = {

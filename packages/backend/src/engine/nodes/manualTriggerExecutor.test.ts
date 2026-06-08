@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest'
 import { ManualTriggerExecutor } from './manualTriggerExecutor'
 import { CronTriggerExecutor } from './cronTriggerExecutor'
 import { WebhookTriggerExecutor } from './webhookTriggerExecutor'
-import type { ExecutionContext } from '@workflow-builder/shared'
+import type { ExecutionContext } from '@triggr/shared'
 
 const ctx: ExecutionContext = {
   executionId: 'exec-1',

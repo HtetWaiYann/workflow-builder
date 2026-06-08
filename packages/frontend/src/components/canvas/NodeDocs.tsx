@@ -1,5 +1,5 @@
 import { Info } from 'lucide-react'
-import type { NodeType } from '@workflow-builder/shared'
+import type { NodeType } from '@triggr/shared'
 import { Button } from '@/components/ui/button'
 import {
   DialogRoot,

@@ -1,4 +1,4 @@
-import type { WorkflowSummary } from '@workflow-builder/shared'
+import type { WorkflowSummary } from '@triggr/shared'
 import {
   DropdownMenuRoot,
   DropdownMenuTrigger,

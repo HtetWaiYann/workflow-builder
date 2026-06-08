@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { useWorkflowStore } from '@/stores/workflowStore'
-import type { WorkflowSummary } from '@workflow-builder/shared'
+import type { WorkflowSummary } from '@triggr/shared'
 
 function makeWorkflow(id: string, name = 'Test Workflow'): WorkflowSummary {
   return {

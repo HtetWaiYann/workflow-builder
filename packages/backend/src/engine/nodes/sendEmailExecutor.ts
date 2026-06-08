@@ -1,6 +1,6 @@
 import nodemailer from 'nodemailer'
-import type { NodeExecutor, ExecutionContext } from '@workflow-builder/shared'
-import { SendEmailConfigSchema } from '@workflow-builder/shared'
+import type { NodeExecutor, ExecutionContext } from '@triggr/shared'
+import { SendEmailConfigSchema } from '@triggr/shared'
 import { logger } from '../../lib/logger'
 
 export class SendEmailExecutor implements NodeExecutor {

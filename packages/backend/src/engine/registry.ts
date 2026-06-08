@@ -1,4 +1,4 @@
-import type { NodeExecutor } from '@workflow-builder/shared'
+import type { NodeExecutor } from '@triggr/shared'
 import { NoOpExecutor } from './nodes/noOpExecutor'
 import { ManualTriggerExecutor } from './nodes/manualTriggerExecutor'
 import { WebhookTriggerExecutor } from './nodes/webhookTriggerExecutor'

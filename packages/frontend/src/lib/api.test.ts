@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { api } from '@/lib/api'
-import type { AuthResponse } from '@workflow-builder/shared'
+import type { AuthResponse } from '@triggr/shared'
 
 const fakeAuthResponse: AuthResponse = {
   user: {

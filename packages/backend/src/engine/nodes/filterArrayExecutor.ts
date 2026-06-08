@@ -1,6 +1,6 @@
 import ivm from 'isolated-vm'
-import type { NodeExecutor, ExecutionContext } from '@workflow-builder/shared'
-import { FilterArrayConfigSchema } from '@workflow-builder/shared'
+import type { NodeExecutor, ExecutionContext } from '@triggr/shared'
+import { FilterArrayConfigSchema } from '@triggr/shared'
 import { logger } from '../../lib/logger'
 
 export class FilterArrayExecutor implements NodeExecutor {

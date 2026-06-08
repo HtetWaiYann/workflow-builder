@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { buildExecutionOrder, hasCycle } from './dag'
-import type { WorkflowNode, WorkflowEdge } from '@workflow-builder/shared'
+import type { WorkflowNode, WorkflowEdge } from '@triggr/shared'
 
 const node = (id: string): WorkflowNode => ({
   id,

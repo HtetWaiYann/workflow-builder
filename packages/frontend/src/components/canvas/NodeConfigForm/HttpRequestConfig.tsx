@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { HttpRequestConfigSchema } from '@workflow-builder/shared'
+import { HttpRequestConfigSchema } from '@triggr/shared'
 import type { HttpMethod } from '@/types/nodeConfig.types'
 import { Input } from '@/components/ui/input'
 import {

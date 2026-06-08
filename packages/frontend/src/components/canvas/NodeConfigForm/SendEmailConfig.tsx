@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { SendEmailConfigSchema } from '@workflow-builder/shared'
+import { SendEmailConfigSchema } from '@triggr/shared'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Field } from '@/components/canvas/NodeConfigForm/Field'
