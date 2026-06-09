@@ -23,7 +23,6 @@ export function TopBar() {
   const user = useAuthStore((s) => s.user)
   const workspaces = useAuthStore((s) => s.workspaces)
   const currentWorkspace = useAuthStore((s) => s.currentWorkspace)
-  const currentRole = useAuthStore((s) => s.currentRole)
   const switchWorkspace = useAuthStore((s) => s.switchWorkspace)
   const clearAuth = useAuthStore((s) => s.clearAuth)
   const navigate = useNavigate()
@@ -109,12 +108,14 @@ export function TopBar() {
           </button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-52">
-          <DropdownMenuLabel>{user?.name ?? user?.email}</DropdownMenuLabel>
-          {currentRole && (
-            <DropdownMenuLabel className="text-muted-foreground py-0 text-xs font-normal">
-              {currentRole} · {currentWorkspace?.name}
-            </DropdownMenuLabel>
-          )}
+          <DropdownMenuLabel>
+            <span className="text-foreground truncate text-base">
+              {user?.name ?? user?.email}
+            </span>
+          </DropdownMenuLabel>
+          <DropdownMenuLabel className="text-muted-foreground/50 py-0 pb-2 text-xs font-normal">
+            v{__APP_VERSION__}
+          </DropdownMenuLabel>
           <DropdownMenuSeparator />
           {currentWorkspace && (
             <DropdownMenuItem

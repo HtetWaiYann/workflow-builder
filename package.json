@@ -1,5 +1,5 @@
 {
-  "name": "workflow-builder",
+  "name": "triggr",
   "private": true,
   "version": "1.0.0",
   "workspaces": [

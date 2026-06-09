@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { useExecutionStore } from '@/stores/executionStore'
-import type { Execution, ExecutionSummary } from '@workflow-builder/shared'
+import type { Execution, ExecutionSummary } from '@triggr/shared'
 
 vi.mock('@/lib/api', () => ({
   api: {

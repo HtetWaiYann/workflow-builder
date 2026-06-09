@@ -25,7 +25,7 @@ import type {
   PendingInvite,
   WebhookSecretStatus,
   WebhookSecretGenerated,
-} from '@workflow-builder/shared'
+} from '@triggr/shared'
 import { useAuthStore } from '@/stores/authStore'
 
 const BASE_URL = '/api'

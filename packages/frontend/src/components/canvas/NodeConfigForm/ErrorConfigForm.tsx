@@ -1,4 +1,4 @@
-import type { NodeErrorPolicy } from '@workflow-builder/shared'
+import type { NodeErrorPolicy } from '@triggr/shared'
 import { Field } from '@/components/canvas/NodeConfigForm/Field'
 import {
   Select,

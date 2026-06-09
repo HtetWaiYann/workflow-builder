@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { WorkflowCard } from '@/components/workflows/WorkflowCard'
-import type { WorkflowSummary } from '@workflow-builder/shared'
+import type { WorkflowSummary } from '@triggr/shared'
 
 const fakeWorkflow: WorkflowSummary = {
   id: 'wf-1',

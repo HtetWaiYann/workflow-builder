@@ -1,6 +1,6 @@
-import type { NodeExecutor, ExecutionContext } from '@workflow-builder/shared'
-import { IfConditionConfigSchema } from '@workflow-builder/shared'
-import { BRANCH_HANDLE_KEY } from '@workflow-builder/shared'
+import type { NodeExecutor, ExecutionContext } from '@triggr/shared'
+import { IfConditionConfigSchema } from '@triggr/shared'
+import { BRANCH_HANDLE_KEY } from '@triggr/shared'
 
 function evaluate(
   fieldValue: unknown,

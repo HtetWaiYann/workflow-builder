@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { X } from 'lucide-react'
-import type { NodeType } from '@workflow-builder/shared'
+import type { NodeType } from '@triggr/shared'
 import { useCanvasStore } from '@/stores/canvasStore'
 import { getNodeDefinition, ICON_MAP } from '@/lib/nodeRegistry'
 import { Button } from '@/components/ui/button'

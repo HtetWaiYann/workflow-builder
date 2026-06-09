@@ -4,7 +4,7 @@ import type {
   Workspace,
   WorkspaceMembership,
   WorkspaceMemberRole,
-} from '@workflow-builder/shared'
+} from '@triggr/shared'
 
 export interface AuthState {
   user: User | null

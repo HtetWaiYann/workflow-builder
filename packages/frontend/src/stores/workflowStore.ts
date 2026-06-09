@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import type { WorkflowSummary } from '@workflow-builder/shared'
+import type { WorkflowSummary } from '@triggr/shared'
 
 export interface WorkflowState {
   workflows: WorkflowSummary[]

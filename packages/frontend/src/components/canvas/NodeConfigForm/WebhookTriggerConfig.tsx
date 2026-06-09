@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { Copy, Check, RefreshCw, ShieldCheck, ShieldOff } from 'lucide-react'
-import { WebhookTriggerConfigSchema } from '@workflow-builder/shared'
-import type { WebhookSecretStatus } from '@workflow-builder/shared'
+import { WebhookTriggerConfigSchema } from '@triggr/shared'
+import type { WebhookSecretStatus } from '@triggr/shared'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import {

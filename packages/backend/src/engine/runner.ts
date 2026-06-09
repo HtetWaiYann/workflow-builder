@@ -1,9 +1,9 @@
-import type { WorkflowNode, WorkflowEdge } from '@workflow-builder/shared'
+import type { WorkflowNode, WorkflowEdge } from '@triggr/shared'
 import {
   BRANCH_HANDLE_KEY,
   ERROR_HANDLE_ID,
   NodeErrorConfigSchema,
-} from '@workflow-builder/shared'
+} from '@triggr/shared'
 import type { Prisma } from '../generated/prisma/client'
 import { prisma } from '../db/client'
 import { logger } from '../lib/logger'

@@ -3,6 +3,11 @@ import react, { reactCompilerPreset } from '@vitejs/plugin-react'
 import babel from '@rolldown/plugin-babel'
 import tailwindcss from '@tailwindcss/vite'
 import path from 'node:path'
+import { readFileSync } from 'node:fs'
+
+const rootPkg = JSON.parse(
+  readFileSync(path.resolve(import.meta.dirname, '../../package.json'), 'utf8')
+) as { version: string }
 
 export default defineConfig({
   plugins: [
@@ -15,8 +20,11 @@ export default defineConfig({
       '@': path.resolve(import.meta.dirname, './src'),
     },
   },
+  define: {
+    __APP_VERSION__: JSON.stringify(rootPkg.version),
+  },
   optimizeDeps: {
-    include: ['@workflow-builder/shared'],
+    include: ['@triggr/shared'],
   },
   server: {
     // Bind to 0.0.0.0 so the Vite dev server is reachable from the host

@@ -1,4 +1,4 @@
-import type { NodeExecutor, ExecutionContext } from '@workflow-builder/shared'
+import type { NodeExecutor, ExecutionContext } from '@triggr/shared'
 
 /** Passes input data through unchanged. Used for trigger nodes and as a stub for unimplemented types. */
 export class NoOpExecutor implements NodeExecutor {

@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { ChevronDown, X } from 'lucide-react'
-import type { ExecutionNodeRun, NodeRunStatus } from '@workflow-builder/shared'
+import type { ExecutionNodeRun, NodeRunStatus } from '@triggr/shared'
 import { useExecutionStore } from '@/stores/executionStore'
 import { useCanvasStore } from '@/stores/canvasStore'
 import { Button } from '@/components/ui/button'

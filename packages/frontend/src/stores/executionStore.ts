@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { immer } from 'zustand/middleware/immer'
-import type { Execution, ExecutionSummary } from '@workflow-builder/shared'
+import type { Execution, ExecutionSummary } from '@triggr/shared'
 import { api } from '@/lib/api'
 
 let pollTimer: ReturnType<typeof setInterval> | null = null

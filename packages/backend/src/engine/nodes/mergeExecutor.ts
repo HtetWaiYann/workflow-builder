@@ -1,4 +1,4 @@
-import type { NodeExecutor, ExecutionContext } from '@workflow-builder/shared'
+import type { NodeExecutor, ExecutionContext } from '@triggr/shared'
 import { z } from 'zod'
 
 const MergeInputSchema = z.object({

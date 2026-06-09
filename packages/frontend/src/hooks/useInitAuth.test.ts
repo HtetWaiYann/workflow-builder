@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { renderHook, waitFor } from '@testing-library/react'
 import { useInitAuth } from '@/hooks/useInitAuth'
 import { useAuthStore } from '@/stores/authStore'
-import type { AuthResponse } from '@workflow-builder/shared'
+import type { AuthResponse } from '@triggr/shared'
 
 vi.mock('@/lib/api', () => ({
   api: {

@@ -6,7 +6,7 @@ import type {
   WorkspaceMember,
   WorkspaceMemberRole,
   PendingInvite,
-} from '@workflow-builder/shared'
+} from '@triggr/shared'
 import { TopBar } from '@/components/TopBar'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'

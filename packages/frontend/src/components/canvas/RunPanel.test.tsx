@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event'
 import { useExecutionStore } from '@/stores/executionStore'
 import { useCanvasStore } from '@/stores/canvasStore'
 import { RunPanel } from '@/components/canvas/RunPanel'
-import type { Execution } from '@workflow-builder/shared'
+import type { Execution } from '@triggr/shared'
 
 vi.mock('@/lib/api', () => ({
   api: {

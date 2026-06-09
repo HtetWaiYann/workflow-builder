@@ -7,3 +7,5 @@ docs/
 CLAUDE.local.md
 # Local notes
 .notes/
+# Claude Code local settings (user-specific permissions, not shared)
+.claude/settings.local.json

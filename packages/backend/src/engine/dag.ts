@@ -1,4 +1,4 @@
-import type { WorkflowNode, WorkflowEdge } from '@workflow-builder/shared'
+import type { WorkflowNode, WorkflowEdge } from '@triggr/shared'
 
 /**
  * Returns nodes sorted in topological execution order (sources first) using Kahn's algorithm.

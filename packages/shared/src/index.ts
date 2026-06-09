@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-export const GREETING = 'Hello from @workflow-builder/shared!'
+export const GREETING = 'Hello from @triggr/shared!'
 
 // Node type definitions
 

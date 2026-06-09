@@ -7,7 +7,7 @@ import type {
   NodeType,
   WorkflowNode,
   WorkflowEdge,
-} from '@workflow-builder/shared'
+} from '@triggr/shared'
 import { api } from '@/lib/api'
 import { getNodeDefinition } from '@/lib/nodeRegistry'
 import { hasCycle } from '@/lib/dagUtils'

@@ -6,7 +6,7 @@ import {
   InviteMemberRequestSchema,
   UpdateMemberRoleRequestSchema,
   UpdateWorkspaceNameRequestSchema,
-} from '@workflow-builder/shared'
+} from '@triggr/shared'
 import { prisma } from '../db/client'
 import { logger } from '../lib/logger'
 import { requireAuth } from '../middleware/auth'

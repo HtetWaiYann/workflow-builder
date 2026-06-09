@@ -5,7 +5,7 @@ import { MemoryRouter } from 'react-router-dom'
 import { DashboardPage } from '@/pages/DashboardPage'
 import { useAuthStore } from '@/stores/authStore'
 import { useWorkflowStore } from '@/stores/workflowStore'
-import type { WorkflowSummary, Workflow } from '@workflow-builder/shared'
+import type { WorkflowSummary, Workflow } from '@triggr/shared'
 
 const mockNavigate = vi.hoisted(() => vi.fn())
 

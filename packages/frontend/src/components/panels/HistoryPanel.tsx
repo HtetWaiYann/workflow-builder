@@ -4,7 +4,7 @@ import type {
   ExecutionNodeRun,
   ExecutionSummary,
   NodeRunStatus,
-} from '@workflow-builder/shared'
+} from '@triggr/shared'
 import { useExecutionStore } from '@/stores/executionStore'
 import { Button } from '@/components/ui/button'
 

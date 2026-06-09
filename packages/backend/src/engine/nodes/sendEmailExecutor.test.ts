@@ -19,7 +19,7 @@ vi.mock('../../lib/logger', () => ({
 }))
 
 import { SendEmailExecutor } from './sendEmailExecutor'
-import type { ExecutionContext } from '@workflow-builder/shared'
+import type { ExecutionContext } from '@triggr/shared'
 
 const ctx: ExecutionContext = {
   executionId: 'exec-1',

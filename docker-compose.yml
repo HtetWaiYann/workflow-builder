@@ -45,7 +45,8 @@ services:
       # Override connection strings so they point to Docker service names
       DATABASE_URL: postgresql://${POSTGRES_USER:-workflow}:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}@postgres:5432/workflow_builder?schema=public
       REDIS_URL: redis://redis:6379
-      CORS_ORIGIN: http://localhost
+      # Set via root .env on the server (e.g. CORS_ORIGIN=https://triggr.htetwaiyan.com)
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost}
     depends_on:
       postgres:
         condition: service_healthy
@@ -57,18 +58,17 @@ services:
       timeout: 5s
       retries: 5
       start_period: 30s
-    # No ports mapping — backend is only reachable through the nginx proxy
+    # No ports mapping — backend is only reachable through the nginx proxy inside Docker
 
   frontend:
     build:
       context: .
       dockerfile: packages/frontend/Dockerfile
-      args:
-        # Empty string so the frontend uses relative URLs; nginx proxies them to backend
-        VITE_API_URL: ''
     restart: unless-stopped
+    # Bind to 127.0.0.1 so only the host nginx reverse proxy can reach this container.
+    # Direct access from the internet is blocked.
     ports:
-      - '80:80'
+      - '127.0.0.1:8080:80'
     depends_on:
       backend:
         condition: service_healthy

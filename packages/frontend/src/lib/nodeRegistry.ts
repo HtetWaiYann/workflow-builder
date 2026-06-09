@@ -18,7 +18,7 @@ import type {
   NodeType,
   NodeGroup,
   NodeTypeDefinition,
-} from '@workflow-builder/shared'
+} from '@triggr/shared'
 
 type IconComponent = React.ComponentType<{
   size?: number

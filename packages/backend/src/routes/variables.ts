@@ -3,7 +3,7 @@ import type { Response } from 'express'
 import {
   CreateWorkspaceVariableRequestSchema,
   UpdateWorkspaceVariableRequestSchema,
-} from '@workflow-builder/shared'
+} from '@triggr/shared'
 import { prisma } from '../db/client'
 import { requireAuth } from '../middleware/auth'
 import type { AuthRequest } from '../middleware/auth'

@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { Search, ChevronDown, ChevronRight } from 'lucide-react'
-import type { NodeType, NodeGroup } from '@workflow-builder/shared'
+import type { NodeType, NodeGroup } from '@triggr/shared'
 import { NODE_GROUPS, ICON_MAP } from '@/lib/nodeRegistry'
 
 const GROUP_ORDER: NodeGroup[] = [

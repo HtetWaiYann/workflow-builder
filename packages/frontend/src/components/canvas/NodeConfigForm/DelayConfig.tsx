@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { DelayConfigSchema } from '@workflow-builder/shared'
+import { DelayConfigSchema } from '@triggr/shared'
 import type { DelayUnit } from '@/types/nodeConfig.types'
 import { Input } from '@/components/ui/input'
 import {

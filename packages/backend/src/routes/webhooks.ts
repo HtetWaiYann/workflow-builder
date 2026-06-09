@@ -5,7 +5,7 @@ import { z } from 'zod'
 import {
   WorkflowNodeSchema,
   WorkflowEdgeSchema,
-} from '@workflow-builder/shared'
+} from '@triggr/shared'
 import type { Prisma } from '../generated/prisma/client'
 import { prisma } from '../db/client'
 import { logger } from '../lib/logger'

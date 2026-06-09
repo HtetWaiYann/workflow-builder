@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { LoginPage } from '@/pages/LoginPage'
 import { useAuthStore } from '@/stores/authStore'
-import type { AuthResponse } from '@workflow-builder/shared'
+import type { AuthResponse } from '@triggr/shared'
 
 const mockNavigate = vi.hoisted(() => vi.fn())
 

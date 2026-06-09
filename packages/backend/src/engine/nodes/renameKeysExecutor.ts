@@ -1,5 +1,5 @@
-import type { NodeExecutor, ExecutionContext } from '@workflow-builder/shared'
-import { RenameKeysConfigSchema } from '@workflow-builder/shared'
+import type { NodeExecutor, ExecutionContext } from '@triggr/shared'
+import { RenameKeysConfigSchema } from '@triggr/shared'
 
 export class RenameKeysExecutor implements NodeExecutor {
   readonly type = 'rename-keys' as const

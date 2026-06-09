@@ -3,7 +3,7 @@ import { z } from 'zod'
 import {
   WorkflowNodeSchema,
   WorkflowEdgeSchema,
-} from '@workflow-builder/shared'
+} from '@triggr/shared'
 import { prisma } from '../db/client'
 import { logger } from '../lib/logger'
 import { runWorkflow } from '../engine/runner'

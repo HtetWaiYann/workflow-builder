@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { SetFieldsExecutor } from './setFieldsExecutor'
-import type { ExecutionContext } from '@workflow-builder/shared'
+import type { ExecutionContext } from '@triggr/shared'
 
 const ctx: ExecutionContext = {
   executionId: 'exec-1',
