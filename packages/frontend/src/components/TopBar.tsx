@@ -1,6 +1,6 @@
 import { useAuthStore } from '@/stores/authStore'
 import { api } from '@/lib/api'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import {
   DropdownMenuRoot,
   DropdownMenuTrigger,
@@ -96,6 +96,14 @@ export function TopBar() {
 
       {/* Spacer */}
       <div className="flex-1" />
+
+      {/* Docs link */}
+      <Link
+        to="/docs"
+        className="text-muted-foreground hover:text-foreground text-sm underline-offset-4 transition-colors duration-150 hover:underline"
+      >
+        Docs
+      </Link>
 
       {/* Theme dropdown */}
       <ThemeToggle />

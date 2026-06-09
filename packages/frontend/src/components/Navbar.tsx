@@ -26,6 +26,13 @@ export function Navbar() {
 
       <div className="flex-1" />
 
+      <Link
+        to="/docs"
+        className="text-muted-foreground hover:text-foreground text-sm underline-offset-4 transition-colors duration-150 hover:underline"
+      >
+        Docs
+      </Link>
+
       <ThemeToggle />
 
       {isLanding && !isLoading && (

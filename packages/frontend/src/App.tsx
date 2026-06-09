@@ -14,6 +14,7 @@ import { WorkspaceSettingsPage } from '@/pages/WorkspaceSettingsPage'
 import { AcceptInvitePage } from '@/pages/AcceptInvitePage'
 import { CreateFirstWorkspacePage } from '@/pages/CreateFirstWorkspacePage'
 import { LandingPage } from '@/pages/LandingPage'
+import { DocsPage } from '@/pages/DocsPage'
 import { Toaster } from '@/components/ui/sonner'
 
 function ThemeApplier() {
@@ -98,6 +99,7 @@ function AppRoutes() {
           </WorkspaceRoute>
         }
       />
+      <Route path="/docs" element={<DocsPage />} />
       <Route path="/invites/:token" element={<AcceptInvitePage />} />
       <Route path="/dashboard" element={<Navigate to="/workflows" replace />} />
       <Route path="/" element={<LandingPage />} />
