@@ -36,6 +36,9 @@ if (!HTMLElement.prototype.setPointerCapture) {
 if (!HTMLElement.prototype.scrollIntoView) {
   HTMLElement.prototype.scrollIntoView = () => {}
 }
+if (!HTMLElement.prototype.scrollTo) {
+  HTMLElement.prototype.scrollTo = () => {}
+}
 
 // Radix Select trigger only opens when event.pointerType === 'mouse'.
 // jsdom's PointerEvent leaves pointerType as '' by default, so we patch the

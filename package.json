@@ -13,6 +13,8 @@
     "docs": "typedoc",
     "format": "prettier --write \"packages/**/*.{ts,tsx,js,jsx,json,css}\"",
     "format:check": "prettier --check \"packages/**/*.{ts,tsx,js,jsx,json,css}\"",
+    "test": "npm run test --workspaces --if-present",
+    "test:coverage": "npm run test:coverage --workspace=packages/frontend && npm run test:coverage --workspace=packages/backend",
     "lint": "npm run lint --workspaces --if-present",
     "db:generate": "npm run db:generate --workspace=packages/backend",
     "db:migrate": "npm run db:migrate --workspace=packages/backend",
