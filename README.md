@@ -63,11 +63,12 @@ Source code changes on your laptop are reflected instantly inside the containers
 git clone <repo-url>
 cd workflow-builder
 
-# Copy the backend env file and fill in secrets (see Environment variables below)
-cp packages/backend/.env.example packages/backend/.env
+# Copy both env files and fill in the required values
+cp .env.example .env                                     # set POSTGRES_PASSWORD (required)
+cp packages/backend/.env.example packages/backend/.env  # set JWT_SECRET, ENCRYPTION_KEY
 
 # Start everything
-POSTGRES_PASSWORD=your_secret docker compose -f docker-compose.dev.yml up
+docker compose -f docker-compose.dev.yml up
 ```
 
 | Service         | URL                   |
@@ -80,29 +81,37 @@ POSTGRES_PASSWORD=your_secret docker compose -f docker-compose.dev.yml up
 The production stack compiles the frontend to static files and serves everything through a single nginx reverse proxy on port 80. The backend is never exposed to the host directly.
 
 ```bash
-POSTGRES_PASSWORD=your_secret docker compose up --build
+# If you haven't already, copy and fill in both env files:
+cp .env.example .env                                     # set POSTGRES_PASSWORD (required)
+#                                                        # set CORS_ORIGIN if hosting on a domain
+cp packages/backend/.env.example packages/backend/.env  # set JWT_SECRET, ENCRYPTION_KEY
+
+docker compose up --build
 ```
 
 App is available at **http://localhost**.
+
+> **Hosting on a server?** Set `CORS_ORIGIN` in your root `.env` to the public URL you'll use,
+> e.g. `CORS_ORIGIN=https://yourdomain.com`.
 
 ### Useful Docker commands
 
 ```bash
 # Run in the background (detached)
-POSTGRES_PASSWORD=your_secret docker compose -f docker-compose.dev.yml up -d
+docker compose -f docker-compose.dev.yml up -d
 
 # View logs for a service
 docker logs workflow-builder-backend-1 -f
 docker logs workflow-builder-frontend-1 -f
 
 # Check running containers and health status
-POSTGRES_PASSWORD=your_secret docker compose -f docker-compose.dev.yml ps
+docker compose -f docker-compose.dev.yml ps
 
 # Stop all containers (data volumes are preserved)
-POSTGRES_PASSWORD=your_secret docker compose -f docker-compose.dev.yml down
+docker compose -f docker-compose.dev.yml down
 
 # Stop and wipe all data (deletes the database)
-POSTGRES_PASSWORD=your_secret docker compose -f docker-compose.dev.yml down -v
+docker compose -f docker-compose.dev.yml down -v
 ```
 
 ---
@@ -163,7 +172,7 @@ Copy `packages/backend/.env.example` to `packages/backend/.env` and fill in the 
 
 When running via Docker Compose, `DATABASE_URL`, `REDIS_URL`, and `CORS_ORIGIN` are **overridden** by the compose file to point at the internal Docker service names. The values in `.env` are only used for local (non-Docker) development.
 
-`POSTGRES_USER` (default: `workflow`) and `POSTGRES_PASSWORD` (required) are passed as shell environment variables — they are used by both the Postgres container and the backend's `DATABASE_URL`.
+`POSTGRES_USER` (default: `workflow`) and `POSTGRES_PASSWORD` (required) are read from the root `.env` file — they are used by both the Postgres container and the backend's `DATABASE_URL`.
 
 ---
 
