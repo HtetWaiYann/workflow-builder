@@ -1,7 +1,8 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { TriggrLogo } from '@/components/TriggrLogo'
 import { Button } from '@/components/ui/button'
-import { ThemeToggle } from '@/components/ThemeToggle'
+import { NavActions } from '@/components/NavActions'
+import { NavDivider } from '@/components/NavDivider'
 import { useAuthStore } from '@/stores/authStore'
 
 /**
@@ -16,27 +17,22 @@ export function Navbar() {
   const navigate = useNavigate()
 
   const isLanding = location.pathname === '/'
+  const showAuth = isLanding || location.pathname === '/docs'
   const userInitial = (user?.name ?? user?.email ?? '?').charAt(0).toUpperCase()
 
   return (
-    <header className="bg-background/90 fixed inset-x-0 top-0 z-50 flex h-16 items-center border-b px-6 backdrop-blur-sm">
+    <header className="bg-background/90 fixed inset-x-0 top-0 z-50 flex h-16 items-center gap-3 border-b px-6 pr-7 backdrop-blur-sm">
       <Link to="/" aria-label="Triggr home">
         <TriggrLogo iconSize={36} />
       </Link>
 
       <div className="flex-1" />
 
-      <Link
-        to="/docs"
-        className="text-muted-foreground hover:text-foreground text-sm underline-offset-4 transition-colors duration-150 hover:underline"
-      >
-        Docs
-      </Link>
+      <NavActions />
 
-      <ThemeToggle />
-
-      {isLanding && !isLoading && (
+      {showAuth && !isLoading && (
         <>
+          <NavDivider />
           {user ? (
             <div className="flex items-center gap-3">
               <span className="text-muted-foreground hidden text-sm sm:block">

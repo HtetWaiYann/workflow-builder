@@ -1,6 +1,8 @@
 import { useAuthStore } from '@/stores/authStore'
 import { api } from '@/lib/api'
-import { Link, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
+import { NavActions } from '@/components/NavActions'
+import { NavDivider } from '@/components/NavDivider'
 import {
   DropdownMenuRoot,
   DropdownMenuTrigger,
@@ -17,7 +19,6 @@ import {
   Plus,
   Variable,
 } from 'lucide-react'
-import { ThemeToggle } from '@/components/ThemeToggle'
 
 export function TopBar() {
   const user = useAuthStore((s) => s.user)
@@ -50,7 +51,7 @@ export function TopBar() {
   }
 
   return (
-    <header className="flex h-12 shrink-0 items-center gap-3 border-b px-4">
+    <header className="flex h-12 shrink-0 items-center gap-3 border-b px-4 pr-5">
       {/* Workspace switcher dropdown */}
       <DropdownMenuRoot>
         <DropdownMenuTrigger asChild>
@@ -97,16 +98,9 @@ export function TopBar() {
       {/* Spacer */}
       <div className="flex-1" />
 
-      {/* Docs link */}
-      <Link
-        to="/docs"
-        className="text-muted-foreground hover:text-foreground text-sm underline-offset-4 transition-colors duration-150 hover:underline"
-      >
-        Docs
-      </Link>
+      <NavActions />
 
-      {/* Theme dropdown */}
-      <ThemeToggle />
+      <NavDivider />
 
       {/* User avatar dropdown */}
       <DropdownMenuRoot>
