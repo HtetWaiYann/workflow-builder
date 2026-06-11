@@ -36,7 +36,7 @@ services:
   # ── Application ───────────────────────────────────────────────────────────
 
   backend:
-    image: ${IMAGE_REGISTRY:-htetwaiyan}/triggr-backend:${IMAGE_TAG:-latest}
+    image: ${IMAGE_REGISTRY}/triggr-backend:${IMAGE_TAG:-latest}
     build:
       context: .
       dockerfile: packages/backend/Dockerfile
@@ -62,7 +62,7 @@ services:
     # No ports mapping — backend is only reachable through the nginx proxy inside Docker
 
   frontend:
-    image: ${IMAGE_REGISTRY:-htetwaiyan}/triggr-frontend:${IMAGE_TAG:-latest}
+    image: ${IMAGE_REGISTRY}/triggr-frontend:${IMAGE_TAG:-latest}
     build:
       context: .
       dockerfile: packages/frontend/Dockerfile

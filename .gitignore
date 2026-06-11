@@ -2,6 +2,7 @@ node_modules/
 dist/
 docs/
 .env
+.env.production
 *.local
 .DS_Store
 CLAUDE.local.md
