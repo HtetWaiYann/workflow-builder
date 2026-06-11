@@ -92,7 +92,6 @@ jobs:
           script: |
             set -e
             cd /opt/triggr
-            git pull origin master
             IMAGE_REGISTRY=${{ env.IMAGE_REGISTRY }} IMAGE_TAG=${{ github.sha }} docker compose pull
             IMAGE_REGISTRY=${{ env.IMAGE_REGISTRY }} IMAGE_TAG=${{ github.sha }} docker compose up -d
             docker image prune -f
