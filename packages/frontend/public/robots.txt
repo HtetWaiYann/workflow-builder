@@ -5,5 +5,4 @@ Disallow: /workflows
 Disallow: /settings
 Disallow: /workspaces
 
-# Update the domain below to your production URL before deploying
-Sitemap: https://yourdomain.com/sitemap.xml
+Sitemap: https://triggr.htetwaiyan.com/sitemap.xml
