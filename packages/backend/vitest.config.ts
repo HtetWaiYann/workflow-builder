@@ -7,5 +7,17 @@ export default defineConfig({
     clearMocks: true,
     setupFiles: ['./src/test/setup.ts'],
     include: ['src/**/*.test.ts'],
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'html', 'lcov'],
+      reportsDirectory: './coverage',
+      include: ['src/**/*.ts'],
+      exclude: [
+        'src/test/**',
+        'src/**/*.test.ts',
+        'src/index.ts',
+        'src/worker.ts',
+      ],
+    },
   },
 })

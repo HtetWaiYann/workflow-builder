@@ -9,3 +9,6 @@ CLAUDE.local.md
 .notes/
 # Claude Code local settings (user-specific permissions, not shared)
 .claude/settings.local.json
+
+# Test coverage output
+coverage/

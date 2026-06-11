@@ -52,7 +52,22 @@ beforeEach(() => {
 
 // Persistent header shown on every protected page. Workspace badge and name
 // are read-only; the user avatar opens a dropdown for account actions.
+// NavActions (Docs link + theme toggle) are rendered via the shared component.
 describe('TopBar', () => {
+  it('renders the Docs link from NavActions', () => {
+    renderTopBar()
+    const link = screen.getByRole('link', { name: 'Docs' })
+    expect(link).toBeInTheDocument()
+    expect(link).toHaveAttribute('href', '/docs')
+  })
+
+  it('renders the theme toggle button from NavActions', () => {
+    renderTopBar()
+    expect(
+      screen.getByRole('button', { name: 'Change theme' })
+    ).toBeInTheDocument()
+  })
+
   it('displays the workspace name and its first-letter badge', () => {
     renderTopBar()
     expect(screen.getByText('Acme Corp')).toBeInTheDocument()
