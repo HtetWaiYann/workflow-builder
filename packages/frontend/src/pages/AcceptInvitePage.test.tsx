@@ -151,7 +151,10 @@ describe('AcceptInvitePage', () => {
       isLoading: false,
     })
     mockGetInvite.mockResolvedValueOnce({ invite: fakeInvite })
-    mockAcceptInvite.mockResolvedValueOnce({ role: 'EDITOR' })
+    mockAcceptInvite.mockResolvedValueOnce({
+      workspaceId: 'ws-1',
+      role: 'EDITOR',
+    })
     mockMe.mockResolvedValueOnce({ user: fakeUser, workspaces: [] })
     renderPage()
     await waitFor(() =>

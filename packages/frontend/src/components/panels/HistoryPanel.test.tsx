@@ -9,6 +9,7 @@ const fakeSummary: ExecutionSummary = {
   id: 'exec-1',
   workflowId: 'wf-1',
   status: 'SUCCESS',
+  inputData: null,
   createdAt: '2024-06-01T10:00:00.000Z',
   startedAt: '2024-06-01T10:00:00.000Z',
   finishedAt: '2024-06-01T10:00:00.500Z',
