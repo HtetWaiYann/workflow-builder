@@ -5,7 +5,7 @@ on:
     branches: [master]
 
 env:
-  IMAGE_REGISTRY: htetwaiyan
+  IMAGE_REGISTRY: ${{ secrets.DOCKER_USERNAME }}
   IMAGE_TAG: ${{ github.sha }}
 
 jobs:
@@ -93,6 +93,6 @@ jobs:
             set -e
             cd /opt/triggr
             git pull origin master
-            IMAGE_REGISTRY=${{ env.IMAGE_REGISTRY }} IMAGE_TAG=${{ env.IMAGE_TAG }} docker compose pull
-            IMAGE_REGISTRY=${{ env.IMAGE_REGISTRY }} IMAGE_TAG=${{ env.IMAGE_TAG }} docker compose up -d
+            IMAGE_REGISTRY=${{ env.IMAGE_REGISTRY }} IMAGE_TAG=${{ github.sha }} docker compose pull
+            IMAGE_REGISTRY=${{ env.IMAGE_REGISTRY }} IMAGE_TAG=${{ github.sha }} docker compose up -d
             docker image prune -f
