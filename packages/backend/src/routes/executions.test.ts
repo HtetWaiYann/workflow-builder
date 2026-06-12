@@ -31,6 +31,9 @@ vi.mock('../db/client', () => ({
       findMany: vi.fn(),
       findUnique: vi.fn(),
     },
+    executionNodeRun: {
+      findFirst: vi.fn(),
+    },
     $transaction: vi.fn(),
   },
 }))
@@ -192,6 +195,135 @@ describe('GET /workflows/:id/executions', () => {
     const res = await request(app).get('/workflows/wf-1/executions')
     expect(res.status).toBe(404)
     expect(res.body.code).toBe('NOT_FOUND')
+  })
+})
+
+// Helper: narrow the executionNodeRun mock so TS accepts .mockResolvedValue calls
+type PrismaWithNodeRun = typeof prisma & {
+  executionNodeRun: { findFirst: ReturnType<typeof vi.fn> }
+}
+const nodeRunMock = () =>
+  (prisma as PrismaWithNodeRun).executionNodeRun.findFirst
+
+const mockNodeRun = {
+  id: 'nr-1',
+  executionId: 'exec-1',
+  nodeId: 'node-a',
+  status: 'SUCCESS',
+  inputData: {},
+  outputData: { result: 'ok' },
+  error: null,
+  retryCount: 0,
+  startedAt: NOW,
+  finishedAt: NOW,
+}
+
+const mockNode = {
+  id: 'node-a',
+  type: 'http-request',
+  position: { x: 0, y: 0 },
+  data: { config: { url: 'https://example.com', method: 'GET' } },
+}
+
+// Runs a single node in isolation using the node data from the request body.
+// Awaits runWorkflow synchronously and returns the completed ExecutionNodeRun.
+describe('POST /workflows/:id/nodes/:nodeId/test', () => {
+  beforeEach(() => vi.clearAllMocks())
+
+  it('returns 200 with the node run when the node succeeds', async () => {
+    vi.mocked(prisma.workflow.findFirst).mockResolvedValue(
+      mockWorkflow as never
+    )
+    mockTxResolve(mockExecution)
+    nodeRunMock().mockResolvedValue(mockNodeRun)
+
+    const res = await request(app)
+      .post('/workflows/wf-1/nodes/node-a/test')
+      .send({ node: mockNode })
+
+    expect(res.status).toBe(200)
+    expect(res.body.nodeRun).toMatchObject({
+      id: 'nr-1',
+      nodeId: 'node-a',
+      status: 'SUCCESS',
+    })
+    expect(res.body.nodeRun.outputData).toEqual({ result: 'ok' })
+  })
+
+  it('returns 200 with ERROR status when the node run fails', async () => {
+    vi.mocked(prisma.workflow.findFirst).mockResolvedValue(
+      mockWorkflow as never
+    )
+    mockTxResolve(mockExecution)
+    nodeRunMock().mockResolvedValue({
+      ...mockNodeRun,
+      status: 'ERROR',
+      outputData: null,
+      error: 'Connection refused',
+    })
+
+    const res = await request(app)
+      .post('/workflows/wf-1/nodes/node-a/test')
+      .send({ node: mockNode })
+
+    expect(res.status).toBe(200)
+    expect(res.body.nodeRun.status).toBe('ERROR')
+    expect(res.body.nodeRun.error).toBe('Connection refused')
+  })
+
+  it('calls runWorkflow with only the provided node, no edges, and empty inputData', async () => {
+    vi.mocked(prisma.workflow.findFirst).mockResolvedValue(
+      mockWorkflow as never
+    )
+    mockTxResolve(mockExecution)
+    nodeRunMock().mockResolvedValue(mockNodeRun)
+
+    await request(app)
+      .post('/workflows/wf-1/nodes/node-a/test')
+      .send({ node: mockNode })
+
+    expect(runWorkflow).toHaveBeenCalledWith('exec-1', [mockNode], [], {})
+  })
+
+  it('returns 404 when the workflow does not exist', async () => {
+    vi.mocked(prisma.workflow.findFirst).mockResolvedValue(null)
+
+    const res = await request(app)
+      .post('/workflows/wf-1/nodes/node-a/test')
+      .send({ node: mockNode })
+
+    expect(res.status).toBe(404)
+    expect(res.body.code).toBe('NOT_FOUND')
+  })
+
+  it('returns 400 when the request body is missing the node field', async () => {
+    const res = await request(app)
+      .post('/workflows/wf-1/nodes/node-a/test')
+      .send({})
+
+    expect(res.status).toBe(400)
+    expect(res.body.code).toBe('VALIDATION_ERROR')
+  })
+
+  it('returns 400 when the node object is malformed (missing id)', async () => {
+    const res = await request(app)
+      .post('/workflows/wf-1/nodes/node-a/test')
+      .send({
+        node: { type: 'http-request', position: { x: 0, y: 0 }, data: {} },
+      })
+
+    expect(res.status).toBe(400)
+    expect(res.body.code).toBe('VALIDATION_ERROR')
+  })
+
+  it('does not call runWorkflow when the workflow is not found', async () => {
+    vi.mocked(prisma.workflow.findFirst).mockResolvedValue(null)
+
+    await request(app)
+      .post('/workflows/wf-1/nodes/node-a/test')
+      .send({ node: mockNode })
+
+    expect(runWorkflow).not.toHaveBeenCalled()
   })
 })
 
