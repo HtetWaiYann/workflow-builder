@@ -16,7 +16,7 @@ import { requireAuth } from '../middleware/auth'
 import type { AuthRequest } from '../middleware/auth'
 import { requireWorkspace } from '../middleware/workspace'
 import { requireRole } from '../middleware/role'
-import executionSubRouter from './executions'
+import executionSubRouter, { nodeTestRouter } from './executions'
 import { webhookSecretsRouter } from './webhookSecrets'
 import {
   scheduleCronWorkflow,
@@ -510,6 +510,9 @@ router.delete(
 
 // Mount execution sub-routes under /:workflowId/executions
 router.use('/:workflowId/executions', executionSubRouter)
+
+// Mount node test endpoint under /:workflowId/nodes/:nodeId
+router.use('/:workflowId/nodes/:nodeId', nodeTestRouter)
 
 // Mount webhook HMAC secret management under /:workflowId/nodes/:nodeId/webhook-secret
 router.use('/:workflowId/nodes/:nodeId/webhook-secret', webhookSecretsRouter)

@@ -189,6 +189,75 @@ executionSubRouter.get(
 
 export default executionSubRouter
 
+// ── Node test router (mounted at /workflows/:workflowId/nodes/:nodeId) ─────────
+// Auth + workspace middleware already applied by the parent workflow router.
+
+export const nodeTestRouter = Router({ mergeParams: true })
+
+// POST /workflows/:workflowId/nodes/:nodeId/test — Runs a single node in isolation using
+// the node data provided in the request body (so unsaved canvas changes are tested too).
+// Creates a minimal execution + node run record, awaits runWorkflow synchronously (fast
+// for one node), and returns the completed node run including output or error.
+nodeTestRouter.post(
+  '/test',
+  async (req: AuthRequest, res: Response): Promise<void> => {
+    const parsed = z.object({ node: WorkflowNodeSchema }).safeParse(req.body)
+    if (!parsed.success) {
+      res.status(400).json({
+        error: parsed.error.issues[0]?.message ?? 'Invalid request',
+        code: 'VALIDATION_ERROR',
+      })
+      return
+    }
+
+    try {
+      const workflow = await prisma.workflow.findFirst({
+        where: { id: req.params.workflowId, workspaceId: req.workspaceId },
+        select: { id: true },
+      })
+      if (!workflow) {
+        res.status(404).json({ error: 'Workflow not found', code: 'NOT_FOUND' })
+        return
+      }
+
+      const { node } = parsed.data
+
+      const execution = await prisma.$transaction(async (tx) => {
+        const created = await tx.execution.create({
+          data: {
+            workflowId: workflow.id,
+            status: 'PENDING',
+            inputData: {} as unknown as Prisma.InputJsonValue,
+          },
+        })
+        await tx.executionNodeRun.create({
+          data: { executionId: created.id, nodeId: node.id, status: 'PENDING' },
+        })
+        return created
+      })
+
+      await runWorkflow(execution.id, [node], [], {})
+
+      const nodeRun = await prisma.executionNodeRun.findFirst({
+        where: { executionId: execution.id, nodeId: node.id },
+      })
+      if (!nodeRun) {
+        res
+          .status(500)
+          .json({ error: 'Node run record not found', code: 'INTERNAL_ERROR' })
+        return
+      }
+
+      res.json({ nodeRun: formatNodeRun(nodeRun) })
+    } catch (err) {
+      logger.error({ err }, 'POST /workflows/:id/nodes/:nodeId/test failed')
+      res
+        .status(500)
+        .json({ error: 'Internal server error', code: 'INTERNAL_ERROR' })
+    }
+  }
+)
+
 // ── Detail router (mounted at /executions) ────────────────────────────────────
 
 export const executionDetailRouter = Router()

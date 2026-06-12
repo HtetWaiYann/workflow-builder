@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { X } from 'lucide-react'
+import { X, Loader2 } from 'lucide-react'
 import type { NodeType } from '@triggr/shared'
 import { useCanvasStore } from '@/stores/canvasStore'
 import { getNodeDefinition, ICON_MAP } from '@/lib/nodeRegistry'
@@ -8,6 +8,8 @@ import { Input } from '@/components/ui/input'
 import { NodeConfigForm } from '@/components/canvas/NodeConfigForm'
 import { ErrorConfigForm } from '@/components/canvas/NodeConfigForm/ErrorConfigForm'
 import { NodeDocsButton } from '@/components/canvas/NodeDocs'
+import { getNodeConfigErrors } from '@/lib/nodeConfigValidation'
+import { api } from '@/lib/api'
 
 interface NodeLabelInputProps {
   initialLabel: string
@@ -40,6 +42,8 @@ function NodeLabelInput({ initialLabel, onCommit }: NodeLabelInputProps) {
   )
 }
 
+type TestPhase = 'idle' | 'running' | 'success' | 'error'
+
 export function ConfigPanel() {
   const selectedNodeId = useCanvasStore((s) => s.selectedNodeId)
   const workflowId = useCanvasStore((s) => s.workflowId)
@@ -48,6 +52,23 @@ export function ConfigPanel() {
   const updateNodeLabel = useCanvasStore((s) => s.updateNodeLabel)
   const updateNodeConfig = useCanvasStore((s) => s.updateNodeConfig)
   const updateNodeErrorConfig = useCanvasStore((s) => s.updateNodeErrorConfig)
+
+  const [testPhase, setTestPhase] = React.useState<TestPhase>('idle')
+  const [testOutput, setTestOutput] = React.useState<Record<
+    string,
+    unknown
+  > | null>(null)
+  const [testError, setTestError] = React.useState<string | null>(null)
+  const [configErrors, setConfigErrors] = React.useState<
+    Record<string, string>
+  >({})
+
+  React.useEffect(() => {
+    setTestPhase('idle')
+    setTestOutput(null)
+    setTestError(null)
+    setConfigErrors({})
+  }, [selectedNodeId])
 
   const selectedNode = selectedNodeId
     ? nodes.find((n) => n.id === selectedNodeId)
@@ -68,6 +89,45 @@ export function ConfigPanel() {
     string,
     unknown
   >
+
+  async function handleTestNode() {
+    if (!selectedNode || !workflowId) return
+
+    const errors = getNodeConfigErrors(nodeType, nodeConfig)
+    if (Object.keys(errors).length > 0) {
+      setConfigErrors(errors)
+      return
+    }
+
+    setConfigErrors({})
+    setTestPhase('running')
+    setTestOutput(null)
+    setTestError(null)
+
+    try {
+      const workflowNode = {
+        id: selectedNode.id,
+        type: selectedNode.type ?? '',
+        position: selectedNode.position,
+        data: selectedNode.data,
+      }
+      const { nodeRun } = await api.executions.testNode(
+        workflowId,
+        selectedNode.id,
+        workflowNode
+      )
+      if (nodeRun.status === 'SUCCESS') {
+        setTestPhase('success')
+        setTestOutput(nodeRun.outputData)
+      } else {
+        setTestPhase('error')
+        setTestError(nodeRun.error ?? 'Node execution failed')
+      }
+    } catch (err) {
+      setTestPhase('error')
+      setTestError(err instanceof Error ? err.message : 'Test failed')
+    }
+  }
 
   return (
     <div
@@ -156,11 +216,66 @@ export function ConfigPanel() {
         </div>
 
         {/* Footer */}
-        <div className="border-t px-3 py-2.5">
-          <Button className="h-8 w-full text-sm" variant="outline" disabled>
-            Test Node
-          </Button>
-        </div>
+        {!isTrigger && selectedNode && (
+          <div className="shrink-0 space-y-2 border-t px-3 py-2.5">
+            <Button
+              className="h-8 w-full text-sm"
+              variant="outline"
+              onClick={handleTestNode}
+              disabled={testPhase === 'running'}
+            >
+              {testPhase === 'running' ? (
+                <>
+                  <Loader2 className="mr-1.5 size-3.5 animate-spin" />
+                  Running…
+                </>
+              ) : (
+                'Test Node'
+              )}
+            </Button>
+
+            {Object.keys(configErrors).length > 0 && (
+              <div className="rounded border border-red-200 bg-red-50 px-2.5 py-2 dark:border-red-900/50 dark:bg-red-950/30">
+                <p className="mb-1 text-xs font-medium text-red-700 dark:text-red-400">
+                  Fix before testing:
+                </p>
+                <ul className="space-y-0.5">
+                  {Object.entries(configErrors).map(([field, message]) => (
+                    <li
+                      key={field}
+                      className="text-xs text-red-600 dark:text-red-500"
+                    >
+                      <span className="font-medium capitalize">{field}</span>:{' '}
+                      {message}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {testPhase === 'success' && (
+              <div className="rounded border border-green-200 bg-green-50 px-2.5 py-2 dark:border-green-900/50 dark:bg-green-950/30">
+                <p className="mb-1 text-xs font-medium text-green-700 dark:text-green-400">
+                  Output
+                </p>
+                <pre className="max-h-36 overflow-auto font-mono text-xs text-green-800 dark:text-green-300">
+                  {JSON.stringify(testOutput, null, 2)}
+                </pre>
+              </div>
+            )}
+
+            {testPhase === 'error' && testError && (
+              <div className="rounded border border-red-200 bg-red-50 px-2.5 py-2 dark:border-red-900/50 dark:bg-red-950/30">
+                <p className="mb-1 text-xs font-medium text-red-700 dark:text-red-400">
+                  Error
+                </p>
+                <p className="text-xs break-words text-red-600 dark:text-red-500">
+                  {testError}
+                </p>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   )
