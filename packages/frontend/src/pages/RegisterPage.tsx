@@ -167,7 +167,7 @@ export function RegisterPage() {
                 {isSubmitting ? 'Creating account…' : 'Create account'}
               </Button>
               <p className="text-muted-foreground text-sm">
-                Already have an account?{' '}
+                <span className="mr-2">Already have an account?</span>
                 <Link
                   to={`/login?redirect=${encodeURIComponent(redirect)}`}
                   className="text-foreground underline underline-offset-4"

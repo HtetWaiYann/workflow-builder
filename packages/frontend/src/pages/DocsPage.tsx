@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { ChevronLeft, ChevronRight, BookOpen, X } from 'lucide-react'
 import { Navbar } from '@/components/Navbar'
 import { DocsSidebar } from '@/components/documentation/DocsSidebar'
 import { DocBlock } from '@/components/documentation/DocBlock'
@@ -9,6 +9,7 @@ const PAGE_IDS = DOC_PAGES.map((p) => p.id)
 
 export function DocsPage() {
   const mainRef = useRef<HTMLElement>(null)
+  const [sidebarOpen, setSidebarOpen] = useState(false)
 
   const [activeId, setActiveId] = useState<string>(() => {
     const hash = window.location.hash.slice(1)
@@ -23,6 +24,7 @@ export function DocsPage() {
 
   function handleSelect(id: string) {
     setActiveId(id)
+    setSidebarOpen(false)
     window.history.replaceState(null, '', `/docs#${id}`)
     mainRef.current?.scrollTo({ top: 0, behavior: 'instant' })
   }
@@ -36,10 +38,50 @@ export function DocsPage() {
           <DocsSidebar activeId={activeId} onSelect={handleSelect} />
         </aside>
 
+        {/* Mobile sidebar drawer */}
+        {sidebarOpen && (
+          <>
+            {/* Backdrop */}
+            <div
+              className="fixed inset-0 z-40 bg-black/40 lg:hidden"
+              onClick={() => setSidebarOpen(false)}
+              aria-hidden="true"
+            />
+            {/* Drawer panel */}
+            <div className="bg-background fixed inset-y-0 left-0 z-50 flex w-72 flex-col overflow-y-auto border-r px-3 py-6 pt-20 lg:hidden">
+              <div className="mb-4 flex items-center justify-between px-3">
+                <span className="text-foreground text-xs font-semibold tracking-widest uppercase">
+                  Contents
+                </span>
+                <button
+                  onClick={() => setSidebarOpen(false)}
+                  className="text-muted-foreground hover:text-foreground rounded-md p-1 transition-colors"
+                  aria-label="Close sidebar"
+                >
+                  <X className="size-4" />
+                </button>
+              </div>
+              <DocsSidebar activeId={activeId} onSelect={handleSelect} />
+            </div>
+          </>
+        )}
+
         {/* Main content */}
         <main ref={mainRef} className="flex-1 overflow-y-auto">
           {/* Mobile jump nav */}
-          <div className="bg-background/95 sticky top-0 z-10 flex gap-2 overflow-x-auto border-b px-4 py-2.5 backdrop-blur-sm lg:hidden">
+          <div className="bg-background/95 sticky top-0 z-10 flex items-center gap-2 overflow-x-auto border-b px-4 py-2.5 backdrop-blur-sm lg:hidden">
+            {/* Contents toggle */}
+            <button
+              onClick={() => setSidebarOpen(true)}
+              className="bg-muted text-muted-foreground hover:bg-accent hover:text-foreground flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium transition-colors duration-150"
+              aria-label="Open table of contents"
+            >
+              <BookOpen className="size-3" />
+              Contents
+            </button>
+
+            <div className="bg-border h-4 w-px shrink-0" />
+
             {(
               [
                 { label: 'Getting Started', id: 'introduction' },

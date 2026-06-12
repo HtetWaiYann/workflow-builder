@@ -5,6 +5,7 @@ import {
   isValidCron,
   isValidEmail,
   getConfigErrors,
+  getNodeConfigErrors,
 } from '@/lib/nodeConfigValidation'
 
 describe('isValidUrl', () => {
@@ -177,5 +178,93 @@ describe('getConfigErrors', () => {
     }
     const errors = getConfigErrors(nestedSchema, {})
     expect(errors).toHaveProperty('headers.Authorization')
+  })
+})
+
+// Maps every NodeType to its Zod config schema and returns friendly validation errors.
+describe('getNodeConfigErrors', () => {
+  it('returns {} for manual-trigger (schema has no required fields)', () => {
+    expect(getNodeConfigErrors('manual-trigger', {})).toEqual({})
+  })
+
+  it('returns {} for merge (schema has no required fields)', () => {
+    expect(getNodeConfigErrors('merge', {})).toEqual({})
+  })
+
+  it('returns {} for http-request with all required fields present', () => {
+    expect(
+      getNodeConfigErrors('http-request', {
+        url: 'https://api.example.com',
+        method: 'GET',
+        headers: '{}',
+        body: '{}',
+      })
+    ).toEqual({})
+  })
+
+  it('returns url error for http-request when url is an empty string', () => {
+    const errors = getNodeConfigErrors('http-request', {
+      method: 'GET',
+      url: '',
+    })
+    expect(errors).toHaveProperty('url')
+    expect(errors['url']).toBe('This field is required')
+  })
+
+  it('returns method error for http-request when method is invalid', () => {
+    const errors = getNodeConfigErrors('http-request', {
+      url: 'https://api.example.com',
+      method: 'INVALID',
+    })
+    expect(errors).toHaveProperty('method')
+  })
+
+  it('returns {} for slack-message with all required fields present', () => {
+    expect(
+      getNodeConfigErrors('slack-message', {
+        webhookUrl: 'https://hooks.slack.com/services/abc',
+        message: 'Hello',
+      })
+    ).toEqual({})
+  })
+
+  it('returns webhookUrl error for slack-message when webhookUrl is an empty string', () => {
+    const errors = getNodeConfigErrors('slack-message', {
+      message: 'Hello',
+      webhookUrl: '',
+    })
+    expect(errors).toHaveProperty('webhookUrl')
+    expect(errors['webhookUrl']).toBe('This field is required')
+  })
+
+  it('returns {} for delay with valid duration and unit', () => {
+    expect(
+      getNodeConfigErrors('delay', { duration: 5, unit: 'minutes' })
+    ).toEqual({})
+  })
+
+  it('returns duration error for delay when duration is missing', () => {
+    const errors = getNodeConfigErrors('delay', { unit: 'seconds' })
+    expect(errors).toHaveProperty('duration')
+  })
+
+  it('returns multiple errors for send-email when all fields are empty', () => {
+    const errors = getNodeConfigErrors('send-email', {})
+    expect(errors).toHaveProperty('to')
+    expect(errors).toHaveProperty('smtpHost')
+    expect(errors).toHaveProperty('smtpUser')
+    expect(errors).toHaveProperty('smtpPass')
+    expect(errors).toHaveProperty('smtpFrom')
+  })
+
+  it('returns {} for cron-trigger with a valid schedule string', () => {
+    expect(
+      getNodeConfigErrors('cron-trigger', { schedule: '0 9 * * 1-5' })
+    ).toEqual({})
+  })
+
+  it('returns schedule error for cron-trigger when schedule is empty', () => {
+    const errors = getNodeConfigErrors('cron-trigger', { schedule: '' })
+    expect(errors).toHaveProperty('schedule')
   })
 })

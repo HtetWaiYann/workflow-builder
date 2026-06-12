@@ -10,6 +10,7 @@ import type {
   WorkflowEdge,
   Execution,
   ExecutionSummary,
+  ExecutionNodeRun,
   WorkspaceVariable,
   CreateWorkspaceVariableRequest,
   UpdateWorkspaceVariableRequest,
@@ -253,6 +254,12 @@ export const api = {
 
     get: (executionId: string) =>
       request<{ execution: Execution }>(`/executions/${executionId}`),
+
+    testNode: (workflowId: string, nodeId: string, node: WorkflowNode) =>
+      request<{ nodeRun: ExecutionNodeRun }>(
+        `/workflows/${workflowId}/nodes/${nodeId}/test`,
+        { method: 'POST', body: JSON.stringify({ node }) }
+      ),
   },
 
   webhookSecrets: {

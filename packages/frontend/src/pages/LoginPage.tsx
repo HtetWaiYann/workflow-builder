@@ -111,7 +111,7 @@ export function LoginPage() {
                 {isSubmitting ? 'Signing in…' : 'Sign in'}
               </Button>
               <p className="text-muted-foreground text-sm">
-                No account?{' '}
+                <span className="mr-2">Don't have an account?</span>
                 <Link
                   to={`/register?redirect=${encodeURIComponent(redirect)}`}
                   className="text-foreground underline underline-offset-4"

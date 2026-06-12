@@ -1,3 +1,21 @@
+import type { NodeType } from '@triggr/shared'
+import {
+  ManualTriggerConfigSchema,
+  WebhookTriggerConfigSchema,
+  CronTriggerConfigSchema,
+  HttpRequestConfigSchema,
+  RunJsCodeConfigSchema,
+  IfConditionConfigSchema,
+  SwitchConfigSchema,
+  MergeConfigSchema,
+  SetFieldsConfigSchema,
+  FilterArrayConfigSchema,
+  RenameKeysConfigSchema,
+  SlackMessageConfigSchema,
+  SendEmailConfigSchema,
+  DelayConfigSchema,
+} from '@triggr/shared'
+
 /** Structural type matching any Zod v4 schema's safeParse API. */
 type ZodLike = {
   safeParse(data: unknown):
@@ -65,6 +83,36 @@ export function isValidCron(s: string): boolean {
 /** Returns true if `s` is a plausible email address (RFC 5322 simplified). */
 export function isValidEmail(s: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s)
+}
+
+const NODE_CONFIG_SCHEMAS: Record<NodeType, ZodLike> = {
+  'manual-trigger': ManualTriggerConfigSchema,
+  'webhook-trigger': WebhookTriggerConfigSchema,
+  'cron-trigger': CronTriggerConfigSchema,
+  'http-request': HttpRequestConfigSchema,
+  'run-js-code': RunJsCodeConfigSchema,
+  'if-condition': IfConditionConfigSchema,
+  switch: SwitchConfigSchema,
+  merge: MergeConfigSchema,
+  'set-fields': SetFieldsConfigSchema,
+  'filter-array': FilterArrayConfigSchema,
+  'rename-keys': RenameKeysConfigSchema,
+  'slack-message': SlackMessageConfigSchema,
+  'send-email': SendEmailConfigSchema,
+  delay: DelayConfigSchema,
+}
+
+/**
+ * Validates a node's config against its type-specific schema.
+ * @param nodeType - The node type key.
+ * @param config - The config object to validate.
+ * @returns Flat map of field path to friendly error message, or {} when valid.
+ */
+export function getNodeConfigErrors(
+  nodeType: NodeType,
+  config: Record<string, unknown>
+): Record<string, string> {
+  return getConfigErrors(NODE_CONFIG_SCHEMAS[nodeType], config)
 }
 
 function friendlyMessage(msg: string): string {
