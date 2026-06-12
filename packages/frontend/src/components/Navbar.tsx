@@ -5,7 +5,7 @@ import { TriggrLogo } from '@/components/TriggrLogo'
 import { Button } from '@/components/ui/button'
 import { NavActions } from '@/components/NavActions'
 import { NavDivider } from '@/components/NavDivider'
-import { ThemeToggle } from '@/components/ThemeToggle'
+// import { ThemeToggle } from '@/components/ThemeToggle'
 import { useAuthStore } from '@/stores/authStore'
 
 /**
